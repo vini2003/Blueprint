@@ -1,0 +1,51 @@
+plugins {
+    id 'java'
+
+    id 'maven-publish'
+
+    id 'org.cadixdev.licenser' version '0.6.1'
+}
+
+group 'dev.vini2003'
+version '0.1.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jetbrains:annotations:23.0.0'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = archivesBaseName
+            groupId = group
+            version = version
+
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            name = "vini2003"
+            url = "https://maven.vini2003.dev/releases"
+
+            credentials {
+                username = System.getenv("MVN_USERNAME")
+                password = System.getenv("MVN_TOKEN")
+            }
+
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+}
