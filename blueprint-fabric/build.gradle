@@ -1,0 +1,57 @@
+apply plugin: 'fabric-loom'
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 17
+}
+
+archivesBaseName = "blueprint-fabric"
+
+dependencies {
+	implementation project(path: ":blueprint")
+
+	minecraft 'com.mojang:minecraft:1.18.2'
+	mappings 'net.fabricmc:yarn:1.18.2+build.2:v2'
+
+	modImplementation 'net.fabricmc:fabric-loader:0.13.3'
+}
+
+jar {
+	baseName("blueprint-fabric")
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			artifactId = archivesBaseName
+			groupId = 'dev.vini2003'
+			version = '0.1.8'
+
+			artifact(remapJar) {
+				builtBy remapJar
+			}
+
+			artifact(sourcesJar) {
+				builtBy remapSourcesJar
+			}
+		}
+	}
+
+	repositories {
+		maven {
+			name = "vini2003"
+			url = "https://maven.vini2003.dev/releases"
+
+			credentials {
+				username = System.getenv("MVN_USERNAME")
+				password = System.getenv("MVN_TOKEN")
+			}
+
+			authentication {
+				basic(BasicAuthentication)
+			}
+		}
+	}
+}

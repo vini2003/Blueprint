@@ -1,0 +1,39 @@
+archivesBaseName = "blueprint-netty"
+
+dependencies {
+	implementation project(path: ":blueprint")
+
+	implementation "io.netty:netty-all:4.1.68.Final"
+}
+
+jar {
+	baseName("blueprint-netty")
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			artifactId = archivesBaseName
+			groupId = 'dev.vini2003'
+			version = '0.1.8'
+
+			from components.java
+		}
+	}
+
+	repositories {
+		maven {
+			name = "vini2003"
+			url = "https://maven.vini2003.dev/releases"
+
+			credentials {
+				username = System.getenv("MVN_USERNAME")
+				password = System.getenv("MVN_TOKEN")
+			}
+
+			authentication {
+				basic(BasicAuthentication)
+			}
+		}
+	}
+}

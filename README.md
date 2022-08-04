@@ -14,9 +14,33 @@ A library to aid in the abstraction of encoding/decoding objects to/from multipl
     }
   
     dependencies {
-        implementation 'vini2003:blueprint:0.1.1'
+        implementation 'dev.vini2003:blueprint:0.1.8'
     } 
     ```
+
+  Default parsers are available for the following environments:
+
+
+  - **Fabric**
+    ```groovy
+      implementation 'dev.vini2003:blueprint-fabric:0.1.8'
+    ```
+    
+  - **Paper**
+    ```groovy
+      implementation 'dev.vini2003:blueprint-paper:0.1.8'
+    ```
+
+  - **GSON**
+    ```groovy
+      implementation 'dev.vini2003:blueprint-gson:0.1.8'
+    ```
+  
+  - **Netty**
+    ```groovy
+      implementation 'dev.vini2003:blueprint-netty:0.1.8'
+    ```
+    
   
 - **How do I use the library?**
 

@@ -1,2 +1,23 @@
+pluginManagement {
+	repositories {
+		maven {
+			name = "FabricMC"
+			url = "https://maven.fabricmc.net"
+		}
+
+		maven {
+			name = "PaperMC"
+			url = "https://repo.papermc.io/repository/maven-public/"
+		}
+
+		gradlePluginPortal()
+	}
+}
+
 rootProject.name = 'blueprint'
 
+include("blueprint")
+include("blueprint-netty")
+include("blueprint-gson")
+include("blueprint-fabric")
+include("blueprint-paper")

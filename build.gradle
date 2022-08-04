@@ -1,51 +1,35 @@
 plugins {
-    id 'java'
+	id 'fabric-loom' version '0.12-SNAPSHOT' apply false
 
-    id 'maven-publish'
+    id 'java'
 
     id 'org.cadixdev.licenser' version '0.6.1'
 }
 
 group 'dev.vini2003'
-version '0.1.1'
+version '0.1.7'
 
-repositories {
-    mavenCentral()
-}
+allprojects {
+	apply plugin: 'java'
+	apply plugin: 'maven-publish'
+	apply plugin: 'org.cadixdev.licenser'
 
-dependencies {
-    implementation 'org.jetbrains:annotations:23.0.0'
-}
+	license {
+		header = rootProject.file("LICENSE")
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
+		ignoreFailures = true
+	}
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = archivesBaseName
-            groupId = group
-            version = version
+	repositories {
+		mavenCentral()
+	}
 
-            from components.java
-        }
-    }
+	dependencies {
+		implementation 'org.jetbrains:annotations:23.0.0'
+	}
 
-    repositories {
-        maven {
-            name = "vini2003"
-            url = "https://maven.vini2003.dev/releases"
-
-            credentials {
-                username = System.getenv("MVN_USERNAME")
-                password = System.getenv("MVN_TOKEN")
-            }
-
-            authentication {
-                basic(BasicAuthentication)
-            }
-        }
-    }
+	java {
+		withJavadocJar()
+		withSourcesJar()
+	}
 }

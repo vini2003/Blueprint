@@ -1,0 +1,11 @@
+archivesBaseName = "blueprint-gson"
+
+dependencies {
+	implementation project(path: ":blueprint")
+
+	implementation "com.google.code.gson:gson:2.8.9"
+}
+
+jar {
+	baseName("blueprint-gson")
+}
