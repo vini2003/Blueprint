@@ -211,8 +211,6 @@ Created Person Blueprint!
 GeneratedNode[None, [Node[name], Node[age], Node[job]]]
 Encoded Person to JSON!
 {"name":"John Doe","age":27,"job":{"name":"Programmer","wage":3000}}
-Disconnected from the target VM, address: 'localhost:64456', transport: 'socket'
-Connected to the target VM, address: '127.0.0.1:64359', transport: 'socket'
 Decoded Person from JSON!
 Person[Name[John Doe], Age[27], Job[null]]
 ```
