@@ -27,13 +27,11 @@ package dev.vini2003.blueprint.generic;
 import dev.vini2003.blueprint.Blueprint;
 import dev.vini2003.blueprint.deserializer.Deserializer;
 import dev.vini2003.blueprint.deserializer.Serializer;
-import dev.vini2003.blueprint.supplier.Supplier1;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Optional;
 
-public class GenericOptionalBlueprint<O extends Optional<Object>> extends Blueprint<O> {
+public class GenericOptionalBlueprint<O extends Optional<?>> extends Blueprint<O> {
 	@Override
 	public <F, I> O decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
 		var map = deserializer.read(key, object);
@@ -44,7 +42,7 @@ public class GenericOptionalBlueprint<O extends Optional<Object>> extends Bluepr
 			try {
 				var valueClass = Class.forName(deserializer.readString("Class", map));
 				
-				var valueBlueprint = Blueprint.ofClass((Class<Object>) valueClass);
+				var valueBlueprint = Blueprint.of(valueClass);
 				
 				return (O) set(Optional.of(valueBlueprint.decode(deserializer, "Value", map)), instance);
 			} catch (Exception e) {
@@ -64,7 +62,7 @@ public class GenericOptionalBlueprint<O extends Optional<Object>> extends Bluepr
 		if (valueOptional.isPresent()) {
 			var entry = valueOptional.get();
 			
-			var blueprint = Blueprint.ofValue(entry);
+			var blueprint = Blueprint.of(entry);
 			
 			serializer.writeBoolean("Exists", true, map);
 			

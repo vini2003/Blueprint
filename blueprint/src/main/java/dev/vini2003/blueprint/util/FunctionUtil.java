@@ -30,7 +30,6 @@ import dev.vini2003.blueprint.supplier.Supplier1;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class FunctionUtil {

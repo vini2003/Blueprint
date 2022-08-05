@@ -49,7 +49,7 @@ public class GenericCollectionBlueprint<C extends Collection<Object>> extends Bl
 			try {
 				var valueClass = Class.forName(deserializer.readString(metaDataKey(key) + "$Value", object));
 				
-				var valueBlueprint = Blueprint.ofClass((Class<Object>) valueClass);
+				var valueBlueprint = Blueprint.of(valueClass);
 				
 				deserializer.readCollection(valueBlueprint, key, object, newCollection::add);
 				
@@ -71,7 +71,7 @@ public class GenericCollectionBlueprint<C extends Collection<Object>> extends Bl
 		if (!valueCollection.isEmpty()) {
 			var entry = valueCollection.stream().findFirst().orElseThrow();
 			
-			var valueBlueprint = Blueprint.ofValue(entry);
+			var valueBlueprint = Blueprint.of(entry);
 			
 			serializer.writeBoolean("Exists", true, collection);
 			

@@ -25,12 +25,9 @@
 package dev.vini2003.blueprint.deserializer;
 
 import dev.vini2003.blueprint.Blueprint;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import dev.vini2003.blueprint.consumer.Consumer2;
 import dev.vini2003.blueprint.consumer.Consumer1;
-import java.util.function.Supplier;
+import dev.vini2003.blueprint.consumer.Consumer2;
+import org.jetbrains.annotations.Nullable;
 
 public interface Deserializer<F> {
 	F read(@Nullable String key, F object);

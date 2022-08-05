@@ -52,8 +52,8 @@ public class GenericMapBlueprint<M extends Map<Object, Object>> extends Blueprin
 				var keyClass = Class.forName(deserializer.readString("KeyClass", map));
 				var valueClass = Class.forName(deserializer.readString("ValueClass", map));
 				
-				var keyBlueprint = Blueprint.ofClass(keyClass);
-				var valueBlueprint = Blueprint.ofClass(valueClass);
+				var keyBlueprint = Blueprint.of(keyClass);
+				var valueBlueprint = Blueprint.of(valueClass);
 				
 				deserializer.readMap(keyBlueprint, valueBlueprint, key, map, newMap::put);
 				
@@ -75,8 +75,8 @@ public class GenericMapBlueprint<M extends Map<Object, Object>> extends Blueprin
 		if (!valueMap.isEmpty()) {
 			var entry = valueMap.entrySet().stream().findFirst().orElseThrow();
 			
-			var keyBlueprint = Blueprint.ofValue(entry.getKey());
-			var valueBlueprint = Blueprint.ofValue(entry.getValue());
+			var keyBlueprint = Blueprint.of(entry.getKey());
+			var valueBlueprint = Blueprint.of(entry.getValue());
 			
 			serializer.writeBoolean("Exists", true, map);
 			

@@ -29,15 +29,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import dev.vini2003.blueprint.Blueprint;
+import dev.vini2003.blueprint.consumer.Consumer1;
+import dev.vini2003.blueprint.consumer.Consumer2;
 import dev.vini2003.blueprint.deserializer.Deserializer;
 import dev.vini2003.blueprint.deserializer.Serializer;
 import dev.vini2003.blueprint.exception.DeserializerException;
 import dev.vini2003.blueprint.exception.SerializerException;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import dev.vini2003.blueprint.consumer.Consumer2;
-import dev.vini2003.blueprint.consumer.Consumer1;
+import java.util.Collection;
+import java.util.Map;
 
 public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonElement> {
 	public static final JsonParser INSTANCE = new JsonParser();

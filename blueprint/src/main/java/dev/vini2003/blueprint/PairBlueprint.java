@@ -53,8 +53,8 @@ public class PairBlueprint<T1, T2, N1 extends Blueprint<T1>, N2 extends Blueprin
 		var result = get(value);
 		
 		if (result != null) {
-			n1.encode(serializer, "1", result.getFirst(), map);
-			n2.encode(serializer, "2", result.getSecond(), map);
+			n1.encode(serializer, "First", result.getFirst(), map);
+			n2.encode(serializer, "Second", result.getSecond(), map);
 		}
 		
 		serializer.write(key, map, object);

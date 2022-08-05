@@ -24,8 +24,8 @@
 
 package dev.vini2003.blueprint;
 
-import dev.vini2003.blueprint.annotation.DefaultBlueprint;
 import dev.vini2003.blueprint.annotation.Blueprintable;
+import dev.vini2003.blueprint.annotation.DefaultBlueprint;
 import dev.vini2003.blueprint.compound.*;
 import dev.vini2003.blueprint.consumer.Consumer2;
 import dev.vini2003.blueprint.deserializer.Deserializer;
@@ -37,7 +37,10 @@ import dev.vini2003.blueprint.generic.GenericCollectionBlueprint;
 import dev.vini2003.blueprint.generic.GenericMapBlueprint;
 import dev.vini2003.blueprint.generic.GenericOptionalBlueprint;
 import dev.vini2003.blueprint.pair.Pair;
-import dev.vini2003.blueprint.util.*;
+import dev.vini2003.blueprint.util.CollectionUtil;
+import dev.vini2003.blueprint.util.FunctionUtil;
+import dev.vini2003.blueprint.util.MapUtil;
+import dev.vini2003.blueprint.util.ReflectionUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Modifier;
@@ -315,12 +318,12 @@ public abstract class Blueprint<T> {
 	}
 	
 	@Nullable
-	public static <T> Blueprint<T> ofValue(T t) {
+	public static <T> Blueprint<T> of(T t) {
 		return t instanceof Class<?> ? ofClass((Class<T>) t) : (Blueprint<T>) ofClass(t.getClass());
 	}
 	
 	@Nullable
-	public static <T> Blueprint<T> ofClass(Class<T> clazz) {
+	private static <T> Blueprint<T> ofClass(Class<T> clazz) {
 		if (BLUEPRINTS.containsKey(clazz)) {
 			return (Blueprint<T>) BLUEPRINTS.get(clazz);
 		}

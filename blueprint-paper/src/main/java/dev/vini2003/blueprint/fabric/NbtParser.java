@@ -25,6 +25,8 @@
 package dev.vini2003.blueprint.fabric;
 
 import dev.vini2003.blueprint.Blueprint;
+import dev.vini2003.blueprint.consumer.Consumer1;
+import dev.vini2003.blueprint.consumer.Consumer2;
 import dev.vini2003.blueprint.deserializer.Deserializer;
 import dev.vini2003.blueprint.deserializer.Serializer;
 import dev.vini2003.blueprint.exception.DeserializerException;
@@ -32,9 +34,8 @@ import dev.vini2003.blueprint.exception.SerializerException;
 import net.minecraft.nbt.*;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import dev.vini2003.blueprint.consumer.Consumer2;
-import dev.vini2003.blueprint.consumer.Consumer1;
+import java.util.Collection;
+import java.util.Map;
 
 public class NbtParser implements Serializer<Tag>, Deserializer<Tag> {
 	public static final NbtParser INSTANCE = new NbtParser();
