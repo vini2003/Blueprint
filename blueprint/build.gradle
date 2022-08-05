@@ -9,7 +9,7 @@ publishing {
 		mavenJava(MavenPublication) {
 			artifactId = archivesBaseName
 			groupId = 'dev.vini2003'
-			version = '0.1.9'
+			version = '0.1.10'
 
 			from components.java
 		}
