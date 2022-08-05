@@ -22,13 +22,42 @@
  * SOFTWARE.
  */
 
-package dev.vini2003.blueprint.annotation;
+package dev.vini2003.blueprint;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import dev.vini2003.blueprint.deserializer.Deserializer;
+import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.supplier.Supplier1;
+import org.jetbrains.annotations.Nullable;
 
-@Retention(RetentionPolicy.RUNTIME)
-public @interface GenerateBlueprint {
+import java.util.Collection;
+
+public class CollectionBlueprint<T, N extends Blueprint<T>, C extends Collection<T>> extends Blueprint<C> {
+	private final N n;
+	
+	private final Supplier1<C> collection;
+	
+	public CollectionBlueprint(N n, Supplier1<C> collection) {
+		this.n = n;
+		
+		this.collection = collection;
+	}
+	
+	@Override
+	public <F, I> C decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
+		var collection = this.collection.get();
+		
+		deserializer.readCollection(n, key, object, collection::add);
+		
+		return set(collection, instance);
+	}
+	
+	@Override
+	public <F, O> void encode(Serializer<F> serializer, @Nullable String key, O value, F object) {
+		serializer.writeCollection(n, key, get(value), object);
+	}
+	
+	@Override
+	public String toString() {
+		return "ListNode[" + (key == null ? "None" : key) + ", " + n + "]";
+	}
 }

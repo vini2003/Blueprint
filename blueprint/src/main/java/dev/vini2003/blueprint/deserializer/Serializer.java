@@ -27,11 +27,11 @@ package dev.vini2003.blueprint.deserializer;
 import dev.vini2003.blueprint.Blueprint;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 public interface Serializer<F> {
-	F createList(F object);
+	F createCollection(F object);
 	
 	F createMap(F object);
 	
@@ -55,7 +55,7 @@ public interface Serializer<F> {
 	
 	void writeString(@Nullable String key, String value, F object);
 	
-	<K, V> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, Map<K, V> value, F object);
+	<K, V, M extends Map<K, V>> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, M value, F object);
 	
-	<V> void writeList(Blueprint<V> valueBlueprint, @Nullable String key, List<V> value, F object);
+	<V, C extends Collection<V>> void writeCollection(Blueprint<V> valueBlueprint, @Nullable String key, C value, F object);
 }

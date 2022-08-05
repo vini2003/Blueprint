@@ -31,16 +31,15 @@ import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import dev.vini2003.blueprint.consumer.Consumer2;
+import dev.vini2003.blueprint.consumer.Consumer1;
 
 public class BufParser implements Serializer<ByteBuf>, Deserializer<ByteBuf> {
 	public static final BufParser INSTANCE = new BufParser();
 	
 	@Override
-	public ByteBuf createList(ByteBuf object) {
+	public ByteBuf createCollection(ByteBuf object) {
 		return object;
 	}
 	
@@ -101,7 +100,7 @@ public class BufParser implements Serializer<ByteBuf>, Deserializer<ByteBuf> {
 	}
 	
 	@Override
-	public <K, V> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, Map<K, V> value, ByteBuf object) {
+	public <K, V, M extends Map<K, V>> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, M value, ByteBuf object) {
 		var mapObject = createMap(object);
 		
 		mapObject.writeInt(value.size());
@@ -113,8 +112,8 @@ public class BufParser implements Serializer<ByteBuf>, Deserializer<ByteBuf> {
 	}
 	
 	@Override
-	public <V> void writeList(Blueprint<V> valueBlueprint, @Nullable String key, List<V> value, ByteBuf object) {
-		var listObject = createList(object);
+	public <V, C extends Collection<V>> void writeCollection(Blueprint<V> valueBlueprint, @Nullable String key, C value, ByteBuf object) {
+		var listObject = createCollection(object);
 		
 		listObject.writeInt(value.size());
 		
@@ -174,33 +173,25 @@ public class BufParser implements Serializer<ByteBuf>, Deserializer<ByteBuf> {
 	}
 	
 	@Override
-	public <K, V> Map<K, V> readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, ByteBuf object) {
+	public <K, V> void readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, ByteBuf object, Consumer2<K, V> mapper) {
 		var size = object.readInt();
-		
-		var map = new HashMap<K, V>();
 		
 		for (var i = 0; i < size; i++) {
 			var mapKey = keyBlueprint.decode(this, null, object, null);
 			var mapValue = valueBlueprint.decode(this, null, object, null);
 			
-			map.put(mapKey, mapValue);
+			mapper.accept(mapKey, mapValue);
 		}
-		
-		return map;
 	}
 	
 	@Override
-	public <V> List<V> readList(Blueprint<V> valueBlueprint, @Nullable String key, ByteBuf object) {
+	public <V> void readCollection(Blueprint<V> valueBlueprint, @Nullable String key, ByteBuf object, Consumer1<V> collector) {
 		var size = object.readInt();
 		
-		var list = new ArrayList<V>();
-		
 		for (var i = 0; i < size; i++) {
-			var listValue = valueBlueprint.decode(this, null, object, null);
+			var collectionValue = valueBlueprint.decode(this, null, object, null);
 			
-			list.add(listValue);
+			collector.accept(collectionValue);
 		}
-		
-		return list;
 	}
 }

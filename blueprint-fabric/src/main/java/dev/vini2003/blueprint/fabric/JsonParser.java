@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package dev.vini2003.nbt.fabric;
+package dev.vini2003.blueprint.fabric;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -35,16 +35,15 @@ import dev.vini2003.blueprint.exception.DeserializerException;
 import dev.vini2003.blueprint.exception.SerializerException;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import dev.vini2003.blueprint.consumer.Consumer2;
+import dev.vini2003.blueprint.consumer.Consumer1;
 
 public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonElement> {
 	public static final JsonParser INSTANCE = new JsonParser();
 	
 	@Override
-	public JsonElement createList(JsonElement element) {
+	public JsonElement createCollection(JsonElement element) {
 		return new JsonArray();
 	}
 	
@@ -222,39 +221,40 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	}
 	
 	@Override
-	public <K, V> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, Map<K, V> value, JsonElement object) {
+	public <K, V, M extends Map<K, V>> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, M value, JsonElement object) {
 		var mapObject = createMap(object);
 		
 		if (object instanceof JsonObject jsonObject && mapObject instanceof JsonObject mapJsonObject) {
-			if (key == null) {
-				throw new SerializerException("Cannot write non-keyed Map to " + object.getClass().getName());
-			}
-			
 			for (var mapEntry : value.entrySet()) {
 				var mapKey = mapEntry.getKey();
 				var mapValue = mapEntry.getValue();
 				
-				var mapEntryJson = new JsonObject();
-				
 				var mapKeyJsonArray = new JsonArray();
+				var mapValueJsonArray = new JsonArray();
 				
 				keyBlueprint.encode(this, null, mapKey, mapKeyJsonArray);
-				valueBlueprint.encode(this, null, mapValue, mapEntryJson);
+				valueBlueprint.encode(this, null, mapValue, mapValueJsonArray);
 				
-				mapJsonObject.add(mapKeyJsonArray.get(0).getAsString(), mapEntryJson);
+				if (key != null) {
+					mapJsonObject.add(mapKeyJsonArray.get(0).getAsString(), mapValueJsonArray.get(0));
+				} else {
+					jsonObject.add(mapKeyJsonArray.get(0).getAsString(), mapValueJsonArray.get(0));
+				}
 			}
 			
-			jsonObject.add(key, mapJsonObject);
+			if (key != null) {
+				jsonObject.add(key, mapJsonObject);
+			}
 		} else {
 			throw new SerializerException("Cannot write map to " + object.getClass().getName());
 		}
 	}
 	
 	@Override
-	public <V> void writeList(Blueprint<V> valueBlueprint, @Nullable String key, List<V> value, JsonElement object) {
+	public <V, C extends Collection<V>> void writeCollection(Blueprint<V> valueBlueprint, @Nullable String key, C value, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new SerializerException("Cannot write non-keyed List to " + object.getClass().getName());
+				throw new SerializerException("Cannot write non-keyed Collection to " + object.getClass().getName());
 			}
 			
 			var jsonArray = new JsonArray();
@@ -443,33 +443,27 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	}
 	
 	@Override
-	public <K, V> Map<K, V> readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, JsonElement object) {
+	public <K, V> void readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, JsonElement object, Consumer2<K, V> mapper) {
 		if (object instanceof JsonObject jsonObject) {
-			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed Map from " + object.getClass().getName());
-			}
-			
-			var mapJsonobject = jsonObject.get(key).getAsJsonObject();
-			
-			var map = new HashMap<K, V>();
+			var mapJsonobject = key == null ? jsonObject : jsonObject.get(key).getAsJsonObject();
 			
 			for (var mapKey : mapJsonobject.keySet()) {
-				var mapValue = mapJsonobject.get(mapKey);
-				
-				var keyDeserialized = keyBlueprint.decode(this, null, new JsonPrimitive(mapKey), null);
-				var valueDeserialized = valueBlueprint.decode(this, null, mapValue, null);
-				
-				map.put(keyDeserialized, valueDeserialized);
+				try {
+					var mapValue = mapJsonobject.get(mapKey);
+					
+					var keyDeserialized = keyBlueprint.decode(this, null, new JsonPrimitive(mapKey), null);
+					var valueDeserialized = valueBlueprint.decode(this, null, mapValue, null);
+					
+					mapper.accept(keyDeserialized, valueDeserialized);
+				} catch (Exception ignored) {}
 			}
-			
-			return map;
 		} else {
 			throw new DeserializerException();
 		}
 	}
 	
 	@Override
-	public <V> List<V> readList(Blueprint<V> valueBlueprint, @Nullable String key, JsonElement object) {
+	public <V> void readCollection(Blueprint<V> valueBlueprint, @Nullable String key, JsonElement object, Consumer1<V> collector) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
 				throw new DeserializerException("Cannot read non-keyed List from " + object.getClass().getName());
@@ -477,26 +471,20 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			
 			var jsonArray = jsonObject.get(key).getAsJsonArray();
 			
-			var list = new ArrayList<V>();
-			
 			for (var jsonValue : jsonArray) {
-				var valueDeserialized = valueBlueprint.decode(this, null, jsonValue, null);
-				
-				list.add(valueDeserialized);
+				try {
+					var valueDeserialized = valueBlueprint.decode(this, null, jsonValue, null);
+					
+					collector.accept(valueDeserialized);
+				} catch (Exception ignored) {}
 			}
-			
-			return list;
 		} else {
 			if (object instanceof JsonArray jsonArray) {
-				var list = new ArrayList<V>();
-				
 				for (var jsonValue : jsonArray) {
 					var valueDeserialized = valueBlueprint.decode(this, null, jsonValue, null);
 					
-					list.add(valueDeserialized);
+					collector.accept(valueDeserialized);
 				}
-				
-				return list;
 			} else {
 				throw new DeserializerException();
 			}

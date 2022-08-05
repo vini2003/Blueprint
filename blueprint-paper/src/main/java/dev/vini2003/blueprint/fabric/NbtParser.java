@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package dev.vini2003.nbt.fabric;
+package dev.vini2003.blueprint.fabric;
 
 import dev.vini2003.blueprint.Blueprint;
 import dev.vini2003.blueprint.deserializer.Deserializer;
@@ -32,31 +32,30 @@ import dev.vini2003.blueprint.exception.SerializerException;
 import net.minecraft.nbt.*;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import dev.vini2003.blueprint.consumer.Consumer2;
+import dev.vini2003.blueprint.consumer.Consumer1;
 
-public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElement> {
+public class NbtParser implements Serializer<Tag>, Deserializer<Tag> {
 	public static final NbtParser INSTANCE = new NbtParser();
 	
 	@Override
-	public NbtElement createList(NbtElement object) {
-		return new NbtList();
+	public Tag createCollection(Tag object) {
+		return new ListTag();
 	}
 	
 	@Override
-	public NbtElement createMap(NbtElement object) {
-		return new NbtCompound();
+	public Tag createMap(Tag object) {
+		return new CompoundTag();
 	}
 	
 	@Override
-	public void write(@Nullable String key, NbtElement value, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public void write(@Nullable String key, Tag value, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
-				if (value instanceof NbtCompound valueNbtCompound) {
-					for (var valueKey : valueNbtCompound.getKeys()) {
-						nbtCompound.put(valueKey, valueNbtCompound.get(valueKey));
+				if (value instanceof CompoundTag valueCompoundTag) {
+					for (var valueKey : valueCompoundTag.getAllKeys()) {
+						nbtCompound.put(valueKey, valueCompoundTag.get(valueKey));
 					}
 				}
 			} else {
@@ -66,11 +65,11 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public void writeBoolean(@Nullable String key, boolean value, NbtElement object) {
-		if (object instanceof NbtList nbtList) {
-			nbtList.add(NbtByte.of(value));
+	public void writeBoolean(@Nullable String key, boolean value, Tag object) {
+		if (object instanceof ListTag nbtList) {
+			nbtList.add(ByteTag.valueOf(value));
 		} else {
-			if (object instanceof NbtCompound nbtCompound) {
+			if (object instanceof CompoundTag nbtCompound) {
 				if (key == null) {
 					throw new DeserializerException("Cannot write non-keyed boolean to " + object.getClass().getName());
 				}
@@ -83,11 +82,11 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public void writeByte(@Nullable String key, byte value, NbtElement object) {
-		if (object instanceof NbtList nbtList) {
-			nbtList.add(NbtByte.of(value));
+	public void writeByte(@Nullable String key, byte value, Tag object) {
+		if (object instanceof ListTag nbtList) {
+			nbtList.add(ByteTag.valueOf(value));
 		} else {
-			if (object instanceof NbtCompound nbtCompound) {
+			if (object instanceof CompoundTag nbtCompound) {
 				if (key == null) {
 					throw new SerializerException("Cannot write non-keyed byte to " + object.getClass().getName());
 				}
@@ -100,11 +99,11 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public void writeShort(@Nullable String key, short value, NbtElement object) {
-		if (object instanceof NbtList nbtList) {
-			nbtList.add(NbtShort.of(value));
+	public void writeShort(@Nullable String key, short value, Tag object) {
+		if (object instanceof ListTag nbtList) {
+			nbtList.add(ShortTag.valueOf(value));
 		} else {
-			if (object instanceof NbtCompound nbtCompound) {
+			if (object instanceof CompoundTag nbtCompound) {
 				if (key == null) {
 					throw new SerializerException("Cannot write non-keyed short to " + object.getClass().getName());
 				}
@@ -117,11 +116,11 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public void writeChar(@Nullable String key, char value, NbtElement object) {
-		if (object instanceof NbtList nbtList) {
-			nbtList.add(NbtInt.of(value));
+	public void writeChar(@Nullable String key, char value, Tag object) {
+		if (object instanceof ListTag nbtList) {
+			nbtList.add(IntTag.valueOf(value));
 		} else {
-			if (object instanceof NbtCompound nbtCompound) {
+			if (object instanceof CompoundTag nbtCompound) {
 				if (key == null) {
 					throw new SerializerException("Cannot write non-keyed char to " + object.getClass().getName());
 				}
@@ -134,11 +133,11 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public void writeInt(@Nullable String key, int value, NbtElement object) {
-		if (object instanceof NbtList nbtList) {
-			nbtList.add(NbtInt.of(value));
+	public void writeInt(@Nullable String key, int value, Tag object) {
+		if (object instanceof ListTag nbtList) {
+			nbtList.add(IntTag.valueOf(value));
 		} else {
-			if (object instanceof NbtCompound nbtCompound) {
+			if (object instanceof CompoundTag nbtCompound) {
 				if (key == null) {
 					throw new SerializerException("Cannot write non-keyed int to " + object.getClass().getName());
 				}
@@ -151,15 +150,15 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public void writeLong(@Nullable String key, long value, NbtElement object) {
-		if (object instanceof NbtList nbtList) {
-			nbtList.add(NbtLong.of(value));
+	public void writeLong(@Nullable String key, long value, Tag object) {
+		if (object instanceof ListTag nbtList) {
+			nbtList.add(LongTag.valueOf(value));
 		} else {
 			if (key == null) {
 				throw new SerializerException("Cannot write non-keyed long to " + object.getClass().getName());
 			}
 			
-			if (object instanceof NbtCompound nbtCompound) {
+			if (object instanceof CompoundTag nbtCompound) {
 				nbtCompound.putLong(key, value);
 			} else {
 				throw new SerializerException("Cannot write long to " + object.getClass().getName());
@@ -168,11 +167,11 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public void writeFloat(@Nullable String key, float value, NbtElement object) {
-		if (object instanceof NbtList nbtList) {
-			nbtList.add(NbtFloat.of(value));
+	public void writeFloat(@Nullable String key, float value, Tag object) {
+		if (object instanceof ListTag nbtList) {
+			nbtList.add(FloatTag.valueOf(value));
 		} else {
-			if (object instanceof NbtCompound nbtCompound) {
+			if (object instanceof CompoundTag nbtCompound) {
 				if (key == null) {
 					throw new SerializerException("Cannot write non-keyed float to " + object.getClass().getName());
 				}
@@ -185,11 +184,11 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public void writeDouble(@Nullable String key, double value, NbtElement object) {
-		if (object instanceof NbtList nbtList) {
-			nbtList.add(NbtDouble.of(value));
+	public void writeDouble(@Nullable String key, double value, Tag object) {
+		if (object instanceof ListTag nbtList) {
+			nbtList.add(DoubleTag.valueOf(value));
 		} else {
-			if (object instanceof NbtCompound nbtCompound) {
+			if (object instanceof CompoundTag nbtCompound) {
 				if (key == null) {
 					throw new SerializerException("Cannot write non-keyed double to " + object.getClass().getName());
 				}
@@ -202,11 +201,11 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public void writeString(@Nullable String key, String value, NbtElement object) {
-		if (object instanceof NbtList nbtList) {
-			nbtList.add(NbtString.of(value));
+	public void writeString(@Nullable String key, String value, Tag object) {
+		if (object instanceof ListTag nbtList) {
+			nbtList.add(StringTag.valueOf(value));
 		} else {
-			if (object instanceof NbtCompound nbtCompound) {
+			if (object instanceof CompoundTag nbtCompound) {
 				if (key == null) {
 					throw new SerializerException("Cannot write non-keyed String to " + object.getClass().getName());
 				}
@@ -219,39 +218,40 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public <K, V> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, Map<K, V> value, NbtElement object) {
+	public <K, V, M extends Map<K, V>> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, M value, Tag object) {
 		var mapObject = createMap(object);
 		
-		if (object instanceof NbtCompound nbtCompound && mapObject instanceof NbtCompound mapNbtCompound) {
-			if (key == null) {
-				throw new SerializerException("Cannot write non-keyed Map to " + mapObject.getClass().getName());
-			}
-			
+		if (object instanceof CompoundTag nbtCompound && mapObject instanceof CompoundTag mapNbtCompound) {
 			for (var mapEntry : value.entrySet()) {
 				var mapKey = mapEntry.getKey();
 				var mapValue = mapEntry.getValue();
 				
-				var mapEntryNbt = new NbtCompound();
-				
-				var mapKeyNbtList = new NbtList();
+				var mapKeyNbtList = new ListTag();
+				var mapValueNbtList = new ListTag();
 				
 				keyBlueprint.encode(this, null, mapKey, mapKeyNbtList);
-				valueBlueprint.encode(this, null, mapValue, mapEntryNbt);
+				valueBlueprint.encode(this, null, mapValue, mapValueNbtList);
 				
-				mapNbtCompound.put(mapKeyNbtList.getString(0), mapEntryNbt);
+				if (key != null) {
+					mapNbtCompound.put(mapKeyNbtList.getString(0), mapValueNbtList.get(0));
+				} else {
+					mapNbtCompound.put(mapKeyNbtList.getString(0), mapValueNbtList.get(0));
+				}
 			}
 			
-			nbtCompound.put(key, mapNbtCompound);
+			if (key != null) {
+				nbtCompound.put(key, mapNbtCompound);
+			}
 		} else {
 			throw new SerializerException("Cannot write map to " + object.getClass().getName());
 		}
 	}
 	
 	@Override
-	public <V> void writeList(Blueprint<V> valueBlueprint, @Nullable String key, List<V> value, NbtElement object) {
-		var listObject = createList(object);
+	public <V, C extends Collection<V>> void writeCollection(Blueprint<V> valueBlueprint, @Nullable String key, C value, Tag object) {
+		var listObject = createCollection(object);
 		
-		if (object instanceof NbtCompound nbtCompound && listObject instanceof NbtList mapNbtList) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				throw new SerializerException("Cannot write non-keyed List to " + object.getClass().getName());
 			}
@@ -262,9 +262,9 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			
 			nbtCompound.put(key, listObject);
 		} else {
-			if (object instanceof NbtList nbtList) {
+			if (object instanceof ListTag nbtList) {
 				for (var listValue : value) {
-					var listValueNbt = new NbtCompound();
+					var listValueNbt = new CompoundTag();
 					
 					valueBlueprint.encode(this, null, listValue, listValueNbt);
 					nbtList.add(listValueNbt);
@@ -274,8 +274,8 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public NbtElement read(@Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public Tag read(@Nullable String key, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				return object;
 			}
@@ -287,16 +287,16 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public boolean readBoolean(@Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public boolean readBoolean(@Nullable String key, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				throw new DeserializerException("Cannot read non-keyed boolean from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getBoolean(key);
 		} else {
-			if (object instanceof NbtByte nbtByte) {
-				return nbtByte.byteValue() != 0;
+			if (object instanceof ByteTag nbtByte) {
+				return nbtByte.getAsByte() != 0;
 			} else {
 				throw new DeserializerException();
 			}
@@ -304,16 +304,16 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public byte readByte(@Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public byte readByte(@Nullable String key, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				throw new DeserializerException("Cannot read non-keyed byte from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getByte(key);
 		} else {
-			if (object instanceof NbtByte nbtByte) {
-				return nbtByte.byteValue();
+			if (object instanceof ByteTag nbtByte) {
+				return nbtByte.getAsByte();
 			} else {
 				throw new DeserializerException();
 			}
@@ -321,16 +321,16 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public short readShort(@Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public short readShort(@Nullable String key, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				throw new DeserializerException("Cannot read non-keyed short from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getShort(key);
 		} else {
-			if (object instanceof NbtShort nbtShort) {
-				return nbtShort.shortValue();
+			if (object instanceof ShortTag nbtShort) {
+				return nbtShort.getAsShort();
 			} else {
 				throw new DeserializerException();
 			}
@@ -338,16 +338,16 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public char readChar(@Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public char readChar(@Nullable String key, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				throw new DeserializerException("Cannot read non-keyed char from " + object.getClass().getName());
 			}
 			
 			return (char) nbtCompound.getInt(key);
 		} else {
-			if (object instanceof NbtInt nbtInt) {
-				return (char) nbtInt.intValue();
+			if (object instanceof IntTag nbtInt) {
+				return (char) nbtInt.getAsInt();
 			} else {
 				throw new DeserializerException();
 			}
@@ -355,16 +355,16 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public int readInt(@Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public int readInt(@Nullable String key, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				throw new DeserializerException("Cannot read non-keyed int from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getInt(key);
 		} else {
-			if (object instanceof NbtInt nbtInt) {
-				return nbtInt.intValue();
+			if (object instanceof IntTag nbtInt) {
+				return nbtInt.getAsInt();
 			} else {
 				throw new DeserializerException();
 			}
@@ -372,16 +372,16 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public long readLong(@Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public long readLong(@Nullable String key, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				throw new DeserializerException("Cannot read non-keyed long from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getLong(key);
 		} else {
-			if (object instanceof NbtLong nbtLong) {
-				return nbtLong.longValue();
+			if (object instanceof LongTag nbtLong) {
+				return nbtLong.getAsLong();
 			} else {
 				throw new DeserializerException();
 			}
@@ -389,16 +389,16 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public float readFloat(@Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public float readFloat(@Nullable String key, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				throw new DeserializerException("Cannot read non-keyed float from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getFloat(key);
 		} else {
-			if (object instanceof NbtFloat nbtFloat) {
-				return nbtFloat.floatValue();
+			if (object instanceof FloatTag nbtFloat) {
+				return nbtFloat.getAsFloat();
 			} else {
 				throw new DeserializerException();
 			}
@@ -406,16 +406,16 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public double readDouble(@Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public double readDouble(@Nullable String key, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				throw new DeserializerException("Cannot read non-keyed double from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getDouble(key);
 		} else {
-			if (object instanceof NbtDouble nbtDouble) {
-				return nbtDouble.doubleValue();
+			if (object instanceof DoubleTag nbtDouble) {
+				return nbtDouble.getAsDouble();
 			} else {
 				throw new DeserializerException();
 			}
@@ -423,16 +423,16 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public String readString(@Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public String readString(@Nullable String key, Tag object) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
 				throw new DeserializerException("Cannot read non-keyed String from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getString(key);
 		} else {
-			if (object instanceof NbtString nbtString) {
-				return nbtString.asString();
+			if (object instanceof StringTag nbtString) {
+				return nbtString.getAsString();
 			} else {
 				throw new DeserializerException();
 			}
@@ -440,60 +440,44 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	}
 	
 	@Override
-	public <K, V> Map<K, V> readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
-			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed Map from " + object.getClass().getName());
-			}
+	public <K, V> void readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, Tag object, Consumer2<K, V> mapper) {
+		if (object instanceof CompoundTag nbtCompound) {
+			var mapNbtCompound = key == null ? nbtCompound : nbtCompound.getCompound(key);
 			
-			var mapNbtCompound = nbtCompound.getCompound(key);
-			
-			var map = new HashMap<K, V>();
-			
-			for (var mapKey : mapNbtCompound.getKeys()) {
+			for (var mapKey : mapNbtCompound.getAllKeys()) {
 				var mapValue = mapNbtCompound.get(mapKey);
 				
-				var keyDeserialized = keyBlueprint.decode(this, null, NbtString.of(mapKey), null);
+				var keyDeserialized = keyBlueprint.decode(this, null, StringTag.valueOf(mapKey), null);
 				var valueDeserialized = valueBlueprint.decode(this, null, mapValue, null);
 				
-				map.put(keyDeserialized, valueDeserialized);
+				mapper.accept(keyDeserialized, valueDeserialized);
 			}
-			
-			return map;
 		} else {
 			throw new DeserializerException();
 		}
 	}
 	
 	@Override
-	public <V> List<V> readList(Blueprint<V> valueBlueprint, @Nullable String key, NbtElement object) {
-		if (object instanceof NbtCompound nbtCompound) {
+	public <V> void readCollection(Blueprint<V> valueBlueprint, @Nullable String key, Tag object, Consumer1<V> collector) {
+		if (object instanceof CompoundTag nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed List from " + object.getClass().getName());
+				throw new DeserializerException("Cannot read non-keyed Collection from " + object.getClass().getName());
 			}
 			
-			var nbtList = (NbtList) nbtCompound.get(key);
-			
-			var list = new ArrayList<V>();
+			var nbtList = (ListTag) nbtCompound.get(key);
 			
 			for (var listValue : nbtList) {
 				var valueDeserialized = valueBlueprint.decode(this, null, listValue, null);
 				
-				list.add(valueDeserialized);
+				collector.accept(valueDeserialized);
 			}
-			
-			return list;
 		} else {
-			if (object instanceof NbtList nbtList) {
-				var list = new ArrayList<V>();
-				
+			if (object instanceof ListTag nbtList) {
 				for (var listValue : nbtList) {
 					var valueDeserialized = valueBlueprint.decode(this, null, listValue, null);
 					
-					list.add(valueDeserialized);
+					collector.accept(valueDeserialized);
 				}
-				
-				return list;
 			} else {
 				throw new DeserializerException();
 			}

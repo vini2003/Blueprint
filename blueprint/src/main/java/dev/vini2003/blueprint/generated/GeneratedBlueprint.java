@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
-package dev.vini2003.blueprint;
+package dev.vini2003.blueprint.generated;
 
+import dev.vini2003.blueprint.Blueprint;
 import dev.vini2003.blueprint.deserializer.Deserializer;
 import dev.vini2003.blueprint.deserializer.Serializer;
 import org.jetbrains.annotations.Nullable;

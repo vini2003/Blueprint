@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
-package dev.vini2003.blueprint;
+package dev.vini2003.blueprint.generic;
 
+import dev.vini2003.blueprint.Blueprint;
 import dev.vini2003.blueprint.deserializer.Deserializer;
 import dev.vini2003.blueprint.deserializer.Serializer;
 import dev.vini2003.blueprint.supplier.Supplier1;
@@ -31,16 +32,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public class MapBlueprint<T1, T2, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, M extends Map<T1, T2>> extends Blueprint<M> {
-	private final N1 n1;
-	private final N2 n2;
-	
+public class GenericMapBlueprint<M extends Map<Object, Object>> extends Blueprint<M> {
 	private final Supplier1<M> map;
 	
-	public MapBlueprint(N1 n1, N2 n2, Supplier1<M> map) {
-		this.n1 = n1;
-		this.n2 = n2;
-		
+	public GenericMapBlueprint(Supplier1<M> map) {
 		this.map = map;
 	}
 	
@@ -48,18 +43,54 @@ public class MapBlueprint<T1, T2, N1 extends Blueprint<T1>, N2 extends Blueprint
 	public <F, I> M decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
 		var map = this.map.get();
 		
-		deserializer.readMap(n1, n2, key, object, map::put);
+		var exists = deserializer.readBoolean(key + "$Flag", object);
 		
-		return set(map, instance);
+		if (exists) {
+			try {
+				var keyClass = Class.forName(deserializer.readString(key + "$Key", object));
+				var valueClass = Class.forName(deserializer.readString(key + "$Value", object));
+				
+				var keyBlueprint = Blueprint.ofClass((Class<Object>) keyClass);
+				var valueBlueprint = Blueprint.ofClass((Class<Object>) valueClass);
+				
+				deserializer.readMap(keyBlueprint, valueBlueprint, key, object, map::put);
+				
+				return map;
+			} catch (Exception e) {
+				return map;
+			}
+		} else {
+			return map;
+		}
 	}
 	
 	@Override
 	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		serializer.writeMap(n1, n2, key, get(value), object);
+		var map = get(value);
+		
+		if (!map.isEmpty()) {
+			var entry = map.entrySet().stream().findFirst().orElseThrow();
+			
+			var keyBlueprint = Blueprint.ofValue(entry.getKey());
+			var valueBlueprint = Blueprint.ofValue(entry.getValue());
+			
+			serializer.writeBoolean(metaDataKey(key) + "$Flag", true, object);
+			
+			serializer.writeString(metaDataKey(key) + "$Key", entry.getKey().getClass().getName(), object);
+			serializer.writeString(metaDataKey(key) + "$Value", entry.getValue().getClass().getName(), object);
+			
+			serializer.writeMap(keyBlueprint, valueBlueprint, key, map, object);
+		} else {
+			serializer.writeBoolean(metaDataKey(key) + "$Flag", false, object);
+		}
+	}
+	
+	private String metaDataKey(String key) {
+		return key == null ? "MetaData" : key + "$MetaData";
 	}
 	
 	@Override
 	public String toString() {
-		return "MapNode[" + (key == null ? "None" : key) + ", " + n1 + ", " + n2 + "]";
+		return "GenericMapNode[" + (key == null ? "None" : key) + "]";
 	}
 }

@@ -22,86 +22,85 @@
  * SOFTWARE.
  */
 
-package dev.vini2003.nbt.fabric;
+package dev.vini2003.blueprint.fabric;
 
 import dev.vini2003.blueprint.Blueprint;
 import dev.vini2003.blueprint.deserializer.Deserializer;
 import dev.vini2003.blueprint.deserializer.Serializer;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import dev.vini2003.blueprint.consumer.Consumer2;
+import dev.vini2003.blueprint.consumer.Consumer1;
 
-public class BufParser implements Serializer<PacketByteBuf>, Deserializer<PacketByteBuf> {
+public class BufParser implements Serializer<FriendlyByteBuf>, Deserializer<FriendlyByteBuf> {
 	public static final BufParser INSTANCE = new BufParser();
 	
 	@Override
-	public PacketByteBuf createList(PacketByteBuf object) {
+	public FriendlyByteBuf createCollection(FriendlyByteBuf object) {
 		return object;
 	}
 	
 	@Override
-	public PacketByteBuf createMap(PacketByteBuf object) {
+	public FriendlyByteBuf createMap(FriendlyByteBuf object) {
 		return object;
 	}
 	
 	@Override
-	public void write(@Nullable String key, PacketByteBuf value, PacketByteBuf object) {
+	public void write(@Nullable String key, FriendlyByteBuf value, FriendlyByteBuf object) {
 		return;
 	}
 	
 	@Override
-	public void writeBoolean(@Nullable String key, boolean value, PacketByteBuf object) {
+	public void writeBoolean(@Nullable String key, boolean value, FriendlyByteBuf object) {
 		object.writeBoolean(value);
 	}
 	
 	@Override
-	public void writeByte(@Nullable String key, byte value, PacketByteBuf object) {
+	public void writeByte(@Nullable String key, byte value, FriendlyByteBuf object) {
 		object.writeByte(value);
 	}
 	
 	@Override
-	public void writeShort(@Nullable String key, short value, PacketByteBuf object) {
+	public void writeShort(@Nullable String key, short value, FriendlyByteBuf object) {
 		object.writeShort(value);
 	}
 	
 	@Override
-	public void writeChar(@Nullable String key, char value, PacketByteBuf object) {
+	public void writeChar(@Nullable String key, char value, FriendlyByteBuf object) {
 		object.writeChar(value);
 	}
 	
 	@Override
-	public void writeInt(@Nullable String key, int value, PacketByteBuf object) {
+	public void writeInt(@Nullable String key, int value, FriendlyByteBuf object) {
 		object.writeInt(value);
 	}
 	
 	@Override
-	public void writeLong(@Nullable String key, long value, PacketByteBuf object) {
+	public void writeLong(@Nullable String key, long value, FriendlyByteBuf object) {
 		object.writeLong(value);
 	}
 	
 	@Override
-	public void writeFloat(@Nullable String key, float value, PacketByteBuf object) {
+	public void writeFloat(@Nullable String key, float value, FriendlyByteBuf object) {
 		object.writeFloat(value);
 	}
 	
 	@Override
-	public void writeDouble(@Nullable String key, double value, PacketByteBuf object) {
+	public void writeDouble(@Nullable String key, double value, FriendlyByteBuf object) {
 		object.writeDouble(value);
 	}
 	
 	@Override
-	public void writeString(@Nullable String key, String value, PacketByteBuf object) {
+	public void writeString(@Nullable String key, String value, FriendlyByteBuf object) {
 		object.writeInt(value.length());
 		object.writeBytes(value.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	@Override
-	public <K, V> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, Map<K, V> value, PacketByteBuf object) {
+	public <K, V, M extends Map<K, V>> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, M value, FriendlyByteBuf object) {
 		var mapObject = createMap(object);
 		
 		mapObject.writeInt(value.size());
@@ -113,8 +112,8 @@ public class BufParser implements Serializer<PacketByteBuf>, Deserializer<Packet
 	}
 	
 	@Override
-	public <V> void writeList(Blueprint<V> valueBlueprint, @Nullable String key, List<V> value, PacketByteBuf object) {
-		var listObject = createList(object);
+	public <V, C extends Collection<V>> void writeCollection(Blueprint<V> valueBlueprint, @Nullable String key, C value, FriendlyByteBuf object) {
+		var listObject = createCollection(object);
 		
 		listObject.writeInt(value.size());
 		
@@ -124,83 +123,75 @@ public class BufParser implements Serializer<PacketByteBuf>, Deserializer<Packet
 	}
 	
 	@Override
-	public PacketByteBuf read(@Nullable String key, PacketByteBuf object) {
+	public FriendlyByteBuf read(@Nullable String key, FriendlyByteBuf object) {
 		return object;
 	}
 	
 	@Override
-	public boolean readBoolean(@Nullable String key, PacketByteBuf object) {
+	public boolean readBoolean(@Nullable String key, FriendlyByteBuf object) {
 		return object.readBoolean();
 	}
 	
 	@Override
-	public byte readByte(@Nullable String key, PacketByteBuf object) {
+	public byte readByte(@Nullable String key, FriendlyByteBuf object) {
 		return object.readByte();
 	}
 	
 	@Override
-	public short readShort(@Nullable String key, PacketByteBuf object) {
+	public short readShort(@Nullable String key, FriendlyByteBuf object) {
 		return object.readShort();
 	}
 	
 	@Override
-	public char readChar(@Nullable String key, PacketByteBuf object) {
+	public char readChar(@Nullable String key, FriendlyByteBuf object) {
 		return object.readChar();
 	}
 	
 	@Override
-	public int readInt(@Nullable String key, PacketByteBuf object) {
+	public int readInt(@Nullable String key, FriendlyByteBuf object) {
 		return object.readInt();
 	}
 	
 	@Override
-	public long readLong(@Nullable String key, PacketByteBuf object) {
+	public long readLong(@Nullable String key, FriendlyByteBuf object) {
 		return object.readLong();
 	}
 	
 	@Override
-	public float readFloat(@Nullable String key, PacketByteBuf object) {
+	public float readFloat(@Nullable String key, FriendlyByteBuf object) {
 		return object.readFloat();
 	}
 	
 	@Override
-	public double readDouble(@Nullable String key, PacketByteBuf object) {
+	public double readDouble(@Nullable String key, FriendlyByteBuf object) {
 		return object.readDouble();
 	}
 	
 	@Override
-	public String readString(@Nullable String key, PacketByteBuf object) {
+	public String readString(@Nullable String key, FriendlyByteBuf object) {
 		return object.toString(object.readerIndex(), object.readInt(), StandardCharsets.UTF_8);
 	}
 	
 	@Override
-	public <K, V> Map<K, V> readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, PacketByteBuf object) {
+	public <K, V> void readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, FriendlyByteBuf object, Consumer2<K, V> mapper) {
 		var size = object.readInt();
-		
-		var map = new HashMap<K, V>();
 		
 		for (var i = 0; i < size; i++) {
 			var mapKey = keyBlueprint.decode(this, null, object, null);
 			var mapValue = valueBlueprint.decode(this, null, object, null);
 			
-			map.put(mapKey, mapValue);
+			mapper.accept(mapKey, mapValue);
 		}
-		
-		return map;
 	}
 	
 	@Override
-	public <V> List<V> readList(Blueprint<V> valueBlueprint, @Nullable String key, PacketByteBuf object) {
+	public <V> void readCollection(Blueprint<V> valueBlueprint, @Nullable String key, FriendlyByteBuf object, Consumer1<V> collector) {
 		var size = object.readInt();
 		
-		var list = new ArrayList<V>();
-		
 		for (var i = 0; i < size; i++) {
-			var listValue = valueBlueprint.decode(this, null, object, null);
+			var collectionValue = valueBlueprint.decode(this, null, object, null);
 			
-			list.add(listValue);
+			collector.accept(collectionValue);
 		}
-		
-		return list;
 	}
 }

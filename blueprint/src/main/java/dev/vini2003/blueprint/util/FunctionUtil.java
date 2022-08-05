@@ -26,11 +26,29 @@ package dev.vini2003.blueprint.util;
 
 import dev.vini2003.blueprint.consumer.Consumer2;
 import dev.vini2003.blueprint.function.Function1;
+import dev.vini2003.blueprint.supplier.Supplier1;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class FunctionUtil {
+	@Nullable
+	public static <T> Supplier1<@Nullable T> wrapConstructor(Constructor<T> constructor) {
+		if (constructor == null) {
+			return null;
+		}
+		
+		return () -> {
+			try {
+				return constructor.newInstance();
+			} catch (Exception e) {
+				return null;
+			}
+		};
+	}
+	
     @Nullable
     public static <O, T> Function1<O, T> wrapGetter(Method getter) {
         if (getter == null) {

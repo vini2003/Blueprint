@@ -24,11 +24,42 @@
 
 package dev.vini2003.blueprint.util;
 
+import net.jodah.typetools.TypeResolver;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 
 public class ReflectionUtil {
+	@Nullable
+	public static <T> Class<T> findGeneric(Class<?> parentClazz, Class<?> childClazz, int index) {
+		var type = TypeResolver.resolveRawArguments(parentClazz, childClazz);
+		
+		return (Class<T>) type[index];
+	}
+	
+	@Nullable
+	public static <T> Class<T> findGeneric(Field field, int index) {
+		var type = field.getGenericType();
+		
+		if (type instanceof ParameterizedType parameterizedType) {
+			return (Class<T>) parameterizedType.getActualTypeArguments()[index];
+		} else {
+			return (Class<T>) type.getClass();
+		}
+	}
+	
+	@Nullable
+	public static <T> Constructor<T> findConstructor(Class<T> clazz) {
+		try {
+			return clazz.getConstructor();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	
     @Nullable
     public static Method findGetter(Class<?> clazz, Class<?> fieldClazz, String fieldName) {
         if (clazz.isRecord()) {

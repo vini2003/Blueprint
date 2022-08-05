@@ -27,8 +27,10 @@ package dev.vini2003.blueprint.deserializer;
 import dev.vini2003.blueprint.Blueprint;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import dev.vini2003.blueprint.consumer.Consumer2;
+import dev.vini2003.blueprint.consumer.Consumer1;
+import java.util.function.Supplier;
 
 public interface Deserializer<F> {
 	F read(@Nullable String key, F object);
@@ -51,7 +53,7 @@ public interface Deserializer<F> {
 	
 	String readString(@Nullable String key, F object);
 	
-	<K, V> Map<K, V> readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, F object);
+	<K, V> void readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, F object, Consumer2<K, V> mapper);
 	
-	<V> List<V> readList(Blueprint<V> valueBlueprint, @Nullable String key, F object);
+	<V> void readCollection(Blueprint<V> valueBlueprint, @Nullable String key, F object, Consumer1<V> collector);
 }

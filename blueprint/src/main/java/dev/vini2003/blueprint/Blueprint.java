@@ -25,14 +25,20 @@
 package dev.vini2003.blueprint;
 
 import dev.vini2003.blueprint.annotation.DefaultBlueprint;
-import dev.vini2003.blueprint.annotation.GenerateBlueprint;
+import dev.vini2003.blueprint.annotation.Blueprintable;
 import dev.vini2003.blueprint.compound.*;
 import dev.vini2003.blueprint.consumer.Consumer2;
 import dev.vini2003.blueprint.deserializer.Deserializer;
 import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.exception.BlueprintException;
 import dev.vini2003.blueprint.function.*;
+import dev.vini2003.blueprint.generated.GeneratedBlueprint;
+import dev.vini2003.blueprint.generic.GenericCollectionBlueprint;
+import dev.vini2003.blueprint.generic.GenericMapBlueprint;
 import dev.vini2003.blueprint.pair.Pair;
+import dev.vini2003.blueprint.util.CollectionUtil;
 import dev.vini2003.blueprint.util.FunctionUtil;
+import dev.vini2003.blueprint.util.MapUtil;
 import dev.vini2003.blueprint.util.ReflectionUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,12 +67,12 @@ public abstract class Blueprint<T> {
 		return new Blueprint<>(getter, null, key) {
 			@Override
 			public <F, I> T decode(Deserializer<F> deserializer, String key, F object, I instance) {
-				return Blueprint.this.decode(deserializer, this.key, object, instance);
+				return Blueprint.this.decode(deserializer, this.key != null ? this.key : key, object, instance);
 			}
 			
 			@Override
 			public <F, V> void encode(Serializer<F> serializer, String key, V value, F object) {
-				Blueprint.this.encode(serializer, this.key, value, object, (Function1<? super V, T>) this.getter);
+				Blueprint.this.encode(serializer, this.key != null ? this.key : key, value, object, (Function1<? super V, T>) this.getter);
 			}
 		};
 	}
@@ -75,12 +81,12 @@ public abstract class Blueprint<T> {
 		return new Blueprint<>(null, setter, key) {
 			@Override
 			public <F, I> T decode(Deserializer<F> deserializer, String key, F object, I instance) {
-				return Blueprint.this.decode(deserializer, this.key, object, instance);
+				return Blueprint.this.decode(deserializer, this.key != null ? this.key : key, object, instance);
 			}
 			
 			@Override
 			public <F, V> void encode(Serializer<F> serializer, String key, V value, F object) {
-				Blueprint.this.encode(serializer, this.key, value, object, (Function1<? super V, T>) this.getter);
+				Blueprint.this.encode(serializer, this.key != null ? this.key : key, value, object, (Function1<? super V, T>) this.getter);
 			}
 		};
 	}
@@ -89,12 +95,12 @@ public abstract class Blueprint<T> {
 		return new Blueprint<>(getter, setter, key) {
 			@Override
 			public <F, I> T decode(Deserializer<F> deserializer, String key, F object, I instance) {
-				return Blueprint.this.decode(deserializer, this.key, object, instance);
+				return Blueprint.this.decode(deserializer, this.key != null ? this.key : key, object, instance);
 			}
 			
 			@Override
 			public <F, V> void encode(Serializer<F> serializer, String key, V value, F object) {
-				Blueprint.this.encode(serializer, this.key, value, object, (Function1<? super V, T>) this.getter);
+				Blueprint.this.encode(serializer, this.key != null ? this.key : key, value, object, (Function1<? super V, T>) this.getter);
 			}
 		};
 	}
@@ -128,7 +134,15 @@ public abstract class Blueprint<T> {
 	}
 	
 	public Blueprint<List<T>> list() {
-		return new ListBlueprint<>(this);
+		return new CollectionBlueprint<>(this, ArrayList::new);
+	}
+	
+	public Blueprint<Set<T>> set() {
+		return new CollectionBlueprint<>(this, HashSet::new);
+	}
+	
+	public Blueprint<Queue<T>> queue() {
+		return new CollectionBlueprint<>(this, ArrayDeque::new);
 	}
 	
 	public Blueprint<Optional<T>> optional() {
@@ -301,24 +315,77 @@ public abstract class Blueprint<T> {
 	}
 	
 	@Nullable
-	public static <T> Blueprint<T> of(T t) {
-		return (Blueprint<T>) of(t.getClass());
+	public static <T> Blueprint<T> ofValue(T t) {
+		return t instanceof Class<?> ? ofClass((Class<T>) t) : (Blueprint<T>) ofClass(t.getClass());
 	}
 	
 	@Nullable
-	public static <T> Blueprint<T> of(Class<T> clazz) {
+	public static <T> Blueprint<T> ofClass(Class<T> clazz) {
 		if (BLUEPRINTS.containsKey(clazz)) {
 			return (Blueprint<T>) BLUEPRINTS.get(clazz);
 		}
 		
-		if (clazz.isAnnotationPresent(GenerateBlueprint.class)) {
+		if (Map.class.isAssignableFrom(clazz)) {
+			var wrappedMapConstructor = FunctionUtil.wrapConstructor(ReflectionUtil.findConstructor(clazz));
+			
+			if (wrappedMapConstructor == null) {
+				throw new BlueprintException("Map did not have no-argument constructor in class '" + clazz.getName() + "', cannot create blueprint");
+			}
+			
+			var blueprint = new GenericMapBlueprint(wrappedMapConstructor);
+			
+			BLUEPRINTS.put(clazz, blueprint);
+			
+			return blueprint;
+		} else if (Collection.class.isAssignableFrom(clazz)) {
+			var wrappedCollectionConstructor = FunctionUtil.wrapConstructor(ReflectionUtil.findConstructor(clazz));
+			
+			if (wrappedCollectionConstructor == null) {
+				throw new BlueprintException("Collection did not have no-argument constructor in class '" + clazz.getName() + "', cannot create blueprint");
+			}
+			
+			var blueprint = new GenericCollectionBlueprint(wrappedCollectionConstructor);
+			
+			BLUEPRINTS.put(clazz, blueprint);
+			
+			return blueprint;
+		} else if (clazz.isAnnotationPresent(Blueprintable.class)) {
 			var fields = clazz.getDeclaredFields();
+			
 			var fieldBlueprints = new ArrayList<Blueprint<?>>();
 			var fieldTypes = new ArrayList<Class<?>>();
 			var fieldKeys = new ArrayList<String>();
 			
 			for (var field : fields) {
-				var fieldBlueprint = (Blueprint<Object>) of(field.getType()).key(field.getName());
+				Blueprint<Object> fieldBlueprint;
+				
+				if (Map.class.isAssignableFrom(field.getType())) {
+					var wrappedMapConstructor = FunctionUtil.wrapConstructor(ReflectionUtil.findConstructor(field.getType()));
+					
+					if (wrappedMapConstructor == null) {
+						wrappedMapConstructor = MapUtil.findDefaultConstructor(field.getType());
+					}
+					
+					if (wrappedMapConstructor == null) {
+						throw new BlueprintException("Map did not have no-argument constructor in field '" + field.getName() + "' of class '" + clazz.getName() + "', cannot create blueprint");
+					}
+					
+					fieldBlueprint = new GenericMapBlueprint(wrappedMapConstructor);
+				} else if (Collection.class.isAssignableFrom(field.getType())) {
+					var wrappedCollectionConstructor = FunctionUtil.wrapConstructor(ReflectionUtil.findConstructor(field.getType()));
+					
+					if (wrappedCollectionConstructor == null) {
+						wrappedCollectionConstructor = CollectionUtil.findDefaultConstructor(field.getType());
+					}
+					
+					if (wrappedCollectionConstructor == null) {
+						throw new BlueprintException("Collection did not have no-argument constructor in field '" + field.getName() + "' of class '" + clazz.getName() + "', cannot create blueprint");
+					}
+				
+					fieldBlueprint = new GenericCollectionBlueprint(wrappedCollectionConstructor);
+				} else {
+					fieldBlueprint = ofClass((Class) field.getType());
+				}
 				
 				if (fieldBlueprint == null) {
 					continue;
@@ -326,8 +393,6 @@ public abstract class Blueprint<T> {
 				
 				var wrappedFieldGetter = FunctionUtil.wrapGetter(ReflectionUtil.findGetter(clazz, field.getType(), field.getName()));
 				var wrappedFieldSetter = FunctionUtil.wrapSetter(ReflectionUtil.findSetter(clazz, field.getType(), field.getName()));
-				
-				System.out.println("For " + clazz.getName() + "#" + field.getName() + " found " + wrappedFieldGetter + " and " + wrappedFieldSetter);
 				
 				if (wrappedFieldGetter != null && wrappedFieldSetter == null) {
 					fieldBlueprint = fieldBlueprint.getter(wrappedFieldGetter);
@@ -345,14 +410,14 @@ public abstract class Blueprint<T> {
 					continue;
 				}
 				
+				if (field.isAnnotationPresent(Nullable.class)) {
+					fieldBlueprint = fieldBlueprint.nullable();
+				}
+				
 				fieldBlueprints.add(fieldBlueprint);
 				
 				fieldTypes.add(field.getType());
 				fieldKeys.add(field.getName());
-			}
-			
-			if (fieldBlueprints.isEmpty()) {
-				return null;
 			}
 			
 			var blueprint = new GeneratedBlueprint<T>(clazz, fieldBlueprints.toArray(Blueprint[]::new), fieldTypes.toArray(Class[]::new), fieldKeys.toArray(String[]::new));
@@ -382,11 +447,19 @@ public abstract class Blueprint<T> {
 	}
 	
 	public static <T1, T2> Blueprint<Map<T1, T2>> map(Blueprint<T1> keyBlueprint, Blueprint<T2> valueBlueprint) {
-		return new MapBlueprint<>(keyBlueprint, valueBlueprint);
+		return new MapBlueprint<>(keyBlueprint, valueBlueprint, HashMap::new);
 	}
 	
 	public static <T> Blueprint<List<T>> list(Blueprint<T> valueBlueprint) {
-		return new ListBlueprint<>(valueBlueprint);
+		return new CollectionBlueprint<>(valueBlueprint, ArrayList::new);
+	}
+	
+	public static <T> Blueprint<Set<T>> set(Blueprint<T> valueBlueprint) {
+		return new CollectionBlueprint<>(valueBlueprint, HashSet::new);
+	}
+	
+	public static <T> Blueprint<Queue<T>> queue(Blueprint<T> valueBlueprint) {
+		return new CollectionBlueprint<>(valueBlueprint, ArrayDeque::new);
 	}
 	
 	public static <T> Blueprint<Optional<T>> optional(Blueprint<T> valueBlueprint) {
@@ -450,22 +523,22 @@ public abstract class Blueprint<T> {
 	}
 	
 	static {
-		BLUEPRINTS.put(Boolean.class, Blueprint.BOOLEAN);
-		BLUEPRINTS.put(boolean.class, Blueprint.BOOLEAN);
-		BLUEPRINTS.put(Byte.class, Blueprint.BYTE);
-		BLUEPRINTS.put(byte.class, Blueprint.BYTE);
-		BLUEPRINTS.put(Short.class, Blueprint.SHORT);
-		BLUEPRINTS.put(short.class, Blueprint.SHORT);
-		BLUEPRINTS.put(Character.class, Blueprint.CHARACTER);
-		BLUEPRINTS.put(char.class, Blueprint.CHARACTER);
-		BLUEPRINTS.put(Integer.class, Blueprint.INTEGER);
-		BLUEPRINTS.put(int.class, Blueprint.INTEGER);
-		BLUEPRINTS.put(Long.class, Blueprint.LONG);
-		BLUEPRINTS.put(long.class, Blueprint.LONG);
-		BLUEPRINTS.put(Float.class, Blueprint.FLOAT);
-		BLUEPRINTS.put(float.class, Blueprint.FLOAT);
-		BLUEPRINTS.put(Double.class, Blueprint.DOUBLE);
-		BLUEPRINTS.put(double.class, Blueprint.DOUBLE);
-		BLUEPRINTS.put(String.class, Blueprint.STRING);
+		register(Boolean.class, Blueprint.BOOLEAN);
+		register(boolean.class, Blueprint.BOOLEAN);
+		register(Byte.class, Blueprint.BYTE);
+		register(byte.class, Blueprint.BYTE);
+		register(Short.class, Blueprint.SHORT);
+		register(short.class, Blueprint.SHORT);
+		register(Character.class, Blueprint.CHARACTER);
+		register(char.class, Blueprint.CHARACTER);
+		register(Integer.class, Blueprint.INTEGER);
+		register(int.class, Blueprint.INTEGER);
+		register(Long.class, Blueprint.LONG);
+		register(long.class, Blueprint.LONG);
+		register(Float.class, Blueprint.FLOAT);
+		register(float.class, Blueprint.FLOAT);
+		register(Double.class, Blueprint.DOUBLE);
+		register(double.class, Blueprint.DOUBLE);
+		register(String.class, Blueprint.STRING);
 	}
 }

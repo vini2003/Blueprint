@@ -22,33 +22,11 @@
  * SOFTWARE.
  */
 
-package dev.vini2003.blueprint;
+package dev.vini2003.blueprint.annotation;
 
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
-import org.jetbrains.annotations.Nullable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-import java.util.List;
-
-public class ListBlueprint<T, N extends Blueprint<T>> extends Blueprint<List<T>> {
-	private final N n;
-	
-	public ListBlueprint(N n) {
-		this.n = n;
-	}
-	
-	@Override
-	public <F, I> List<T> decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		return set(deserializer.readList(n, key, object), instance);
-	}
-	
-	@Override
-	public <F, O> void encode(Serializer<F> serializer, @Nullable String key, O value, F object) {
-		serializer.writeList(n, key, get(value), object);
-	}
-	
-	@Override
-	public String toString() {
-		return "ListNode[" + (key == null ? "None" : key) + ", " + n + "]";
-	}
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Blueprintable {
 }
