@@ -39,7 +39,7 @@ public class OptionalBlueprint<T, N extends Blueprint<T>> extends Blueprint<Opti
 	
 	@Override
 	public <F, I> Optional<T> decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		if (deserializer.readBoolean(key + "Flag", object)) {
+		if (deserializer.readBoolean(metaDataKey(key) + "Flag", object)) {
 			try {
 				return set(Optional.of(n.decode(deserializer, key, object, instance)), instance);
 			} catch (Exception exception) {
@@ -55,11 +55,15 @@ public class OptionalBlueprint<T, N extends Blueprint<T>> extends Blueprint<Opti
 		var result = get(value);
 		
 		if (result.isPresent()) {
-			serializer.writeBoolean(key + "Flag", true, object);
+			serializer.writeBoolean(metaDataKey(key) + "Flag", true, object);
 			n.encode(serializer, key, result, object);
 		} else {
-			serializer.writeBoolean(key + "Flag", false, object);
+			serializer.writeBoolean(metaDataKey(key) + "Flag", false, object);
 		}
+	}
+	
+	private String metaDataKey(String key) {
+		return key == null ? "MetaData" : key + "$MetaData";
 	}
 	
 	@Override

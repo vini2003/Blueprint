@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.Map;
 
 public interface Serializer<F> {
+	F createRoot();
+	
 	F createCollection(F object);
 	
 	F createMap(F object);

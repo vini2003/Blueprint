@@ -27,6 +27,7 @@ package dev.vini2003.blueprint.fabric;
 import dev.vini2003.blueprint.Blueprint;
 import dev.vini2003.blueprint.deserializer.Deserializer;
 import dev.vini2003.blueprint.deserializer.Serializer;
+import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,11 @@ import dev.vini2003.blueprint.consumer.Consumer1;
 
 public class BufParser implements Serializer<FriendlyByteBuf>, Deserializer<FriendlyByteBuf> {
 	public static final BufParser INSTANCE = new BufParser();
+	
+	@Override
+	public FriendlyByteBuf createRoot() {
+		return new FriendlyByteBuf(Unpooled.buffer());
+	}
 	
 	@Override
 	public FriendlyByteBuf createCollection(FriendlyByteBuf object) {

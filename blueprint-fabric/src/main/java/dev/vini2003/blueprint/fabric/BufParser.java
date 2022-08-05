@@ -27,6 +27,7 @@ package dev.vini2003.blueprint.fabric;
 import dev.vini2003.blueprint.Blueprint;
 import dev.vini2003.blueprint.deserializer.Deserializer;
 import dev.vini2003.blueprint.deserializer.Serializer;
+import io.netty.buffer.Unpooled;
 import net.minecraft.network.PacketByteBuf;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,11 @@ import dev.vini2003.blueprint.consumer.Consumer1;
 
 public class BufParser implements Serializer<PacketByteBuf>, Deserializer<PacketByteBuf> {
 	public static final BufParser INSTANCE = new BufParser();
+	
+	@Override
+	public PacketByteBuf createRoot() {
+		return new PacketByteBuf(Unpooled.buffer());
+	}
 	
 	@Override
 	public PacketByteBuf createCollection(PacketByteBuf object) {

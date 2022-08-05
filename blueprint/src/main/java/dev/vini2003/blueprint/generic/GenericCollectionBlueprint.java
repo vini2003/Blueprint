@@ -41,7 +41,7 @@ public class GenericCollectionBlueprint<C extends Collection<Object>> extends Bl
 	
 	@Override
 	public <F, I> C decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		var collection = this.collection.get();
+		var newCollection = this.collection.get();
 		
 		var exists = deserializer.readBoolean(metaDataKey(key) + "$Flag", object);
 		
@@ -51,34 +51,38 @@ public class GenericCollectionBlueprint<C extends Collection<Object>> extends Bl
 				
 				var valueBlueprint = Blueprint.ofClass((Class<Object>) valueClass);
 				
-				deserializer.readCollection(valueBlueprint, key, object, collection::add);
+				deserializer.readCollection(valueBlueprint, key, object, newCollection::add);
 				
-				return set(collection, instance);
+				return set(newCollection, instance);
 			} catch (Exception e) {
-				return set(collection, instance);
+				return set(newCollection, instance);
 			}
 		} else {
-			return set(collection, instance);
+			return set(newCollection, instance);
 		}
 	}
 	
 	@Override
 	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		var collection = get(value);
+		var collection = serializer.createCollection(object);
 		
-		if (!collection.isEmpty()) {
-			var entry = collection.stream().findFirst().orElseThrow();
+		var valueCollection = get(value);
+		
+		if (!valueCollection.isEmpty()) {
+			var entry = valueCollection.stream().findFirst().orElseThrow();
 			
 			var valueBlueprint = Blueprint.ofValue(entry);
 			
-			serializer.writeBoolean(metaDataKey(key) + "$Flag", true, object);
+			serializer.writeBoolean("Exists", true, collection);
 			
-			serializer.writeString(metaDataKey(key) + "$Value", entry.getClass().getName(), object);
+			serializer.writeString("Value", entry.getClass().getName(), collection);
 			
-			serializer.writeCollection(valueBlueprint, key, collection, object);
+			serializer.writeCollection(valueBlueprint, key, valueCollection, collection);
 		} else {
-			serializer.writeBoolean(metaDataKey(key) + "$Flag", false, object);
+			serializer.writeBoolean("Exists", false, collection);
 		}
+		
+		serializer.write(key, collection, object);
 	}
 	
 	private String metaDataKey(String key) {

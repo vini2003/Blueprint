@@ -26,7 +26,7 @@ allprojects {
 
 	dependencies {
 		implementation 'org.jetbrains:annotations:23.0.0'
-		implementation 'net.jodah:typetools:0.4.4'
+		implementation 'net.jodah:typetools:0.6.3'
 	}
 
 	java {

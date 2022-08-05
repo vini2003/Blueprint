@@ -40,6 +40,11 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public static final NbtParser INSTANCE = new NbtParser();
 	
 	@Override
+	public NbtElement createRoot() {
+		return new NbtCompound();
+	}
+	
+	@Override
 	public NbtElement createCollection(NbtElement object) {
 		return new NbtList();
 	}

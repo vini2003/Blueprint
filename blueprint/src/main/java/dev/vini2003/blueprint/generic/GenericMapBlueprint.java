@@ -41,52 +41,54 @@ public class GenericMapBlueprint<M extends Map<Object, Object>> extends Blueprin
 	
 	@Override
 	public <F, I> M decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		var map = this.map.get();
+		var map = deserializer.read(key, object);
 		
-		var exists = deserializer.readBoolean(metaDataKey(key) + "$Flag", object);
+		var newMap = this.map.get();
+		
+		var exists = deserializer.readBoolean("Exists", map);
 		
 		if (exists) {
 			try {
-				var keyClass = Class.forName(deserializer.readString(metaDataKey(key) + "$Key", object));
-				var valueClass = Class.forName(deserializer.readString(metaDataKey(key) + "$Value", object));
+				var keyClass = Class.forName(deserializer.readString("KeyClass", map));
+				var valueClass = Class.forName(deserializer.readString("ValueClass", map));
 				
-				var keyBlueprint = Blueprint.ofClass((Class<Object>) keyClass);
-				var valueBlueprint = Blueprint.ofClass((Class<Object>) valueClass);
+				var keyBlueprint = Blueprint.ofClass(keyClass);
+				var valueBlueprint = Blueprint.ofClass(valueClass);
 				
-				deserializer.readMap(keyBlueprint, valueBlueprint, key, object, map::put);
+				deserializer.readMap(keyBlueprint, valueBlueprint, key, map, newMap::put);
 				
-				return map;
+				return newMap;
 			} catch (Exception e) {
-				return map;
+				return newMap;
 			}
 		} else {
-			return map;
+			return newMap;
 		}
 	}
 	
 	@Override
 	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		var map = get(value);
+		var map = serializer.createMap(object);
 		
-		if (!map.isEmpty()) {
-			var entry = map.entrySet().stream().findFirst().orElseThrow();
+		var valueMap = get(value);
+		
+		if (!valueMap.isEmpty()) {
+			var entry = valueMap.entrySet().stream().findFirst().orElseThrow();
 			
 			var keyBlueprint = Blueprint.ofValue(entry.getKey());
 			var valueBlueprint = Blueprint.ofValue(entry.getValue());
 			
-			serializer.writeBoolean(metaDataKey(key) + "$Flag", true, object);
+			serializer.writeBoolean("Exists", true, map);
 			
-			serializer.writeString(metaDataKey(key) + "$Key", entry.getKey().getClass().getName(), object);
-			serializer.writeString(metaDataKey(key) + "$Value", entry.getValue().getClass().getName(), object);
+			serializer.writeString("KeyClass", entry.getKey().getClass().getName(), map);
+			serializer.writeString("ValueClass", entry.getValue().getClass().getName(), map);
 			
-			serializer.writeMap(keyBlueprint, valueBlueprint, key, map, object);
+			serializer.writeMap(keyBlueprint, valueBlueprint, key, valueMap, map);
 		} else {
-			serializer.writeBoolean(metaDataKey(key) + "$Flag", false, object);
+			serializer.writeBoolean("Exists", false, map);
 		}
-	}
-	
-	private String metaDataKey(String key) {
-		return key == null ? "MetaData" : key + "$MetaData";
+		
+		serializer.write(key, map, object);
 	}
 	
 	@Override

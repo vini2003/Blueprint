@@ -29,6 +29,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import dev.vini2003.blueprint.Blueprint;
+import dev.vini2003.blueprint.annotation.Blueprintable;
 import dev.vini2003.blueprint.consumer.Consumer1;
 import dev.vini2003.blueprint.consumer.Consumer2;
 import dev.vini2003.blueprint.deserializer.Deserializer;
@@ -39,9 +40,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonElement> {
 	public static final JsonParser INSTANCE = new JsonParser();
+	
+	@Override
+	public JsonElement createRoot() {
+		return new JsonObject();
+	}
 	
 	@Override
 	public JsonElement createCollection(JsonElement element) {

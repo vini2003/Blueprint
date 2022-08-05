@@ -43,6 +43,11 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public static final JsonParser INSTANCE = new JsonParser();
 	
 	@Override
+	public JsonElement createRoot() {
+		return new JsonObject();
+	}
+	
+	@Override
 	public JsonElement createCollection(JsonElement element) {
 		return new JsonArray();
 	}

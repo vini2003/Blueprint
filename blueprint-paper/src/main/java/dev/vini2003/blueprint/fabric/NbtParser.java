@@ -40,6 +40,11 @@ public class NbtParser implements Serializer<Tag>, Deserializer<Tag> {
 	public static final NbtParser INSTANCE = new NbtParser();
 	
 	@Override
+	public Tag createRoot() {
+		return new CompoundTag();
+	}
+	
+	@Override
 	public Tag createCollection(Tag object) {
 		return new ListTag();
 	}

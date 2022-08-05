@@ -35,11 +35,9 @@ import dev.vini2003.blueprint.function.*;
 import dev.vini2003.blueprint.generated.GeneratedBlueprint;
 import dev.vini2003.blueprint.generic.GenericCollectionBlueprint;
 import dev.vini2003.blueprint.generic.GenericMapBlueprint;
+import dev.vini2003.blueprint.generic.GenericOptionalBlueprint;
 import dev.vini2003.blueprint.pair.Pair;
-import dev.vini2003.blueprint.util.CollectionUtil;
-import dev.vini2003.blueprint.util.FunctionUtil;
-import dev.vini2003.blueprint.util.MapUtil;
-import dev.vini2003.blueprint.util.ReflectionUtil;
+import dev.vini2003.blueprint.util.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Modifier;
@@ -147,10 +145,6 @@ public abstract class Blueprint<T> {
 	
 	public Blueprint<Optional<T>> optional() {
 		return new OptionalBlueprint<>(this);
-	}
-	
-	public Blueprint<@Nullable T> nullable() {
-		return new NullableBlueprint<>(this);
 	}
 	
 	public static Blueprint<Boolean> BOOLEAN = new Blueprint<>() {
@@ -261,6 +255,12 @@ public abstract class Blueprint<T> {
 		}
 	};
 	
+	public <F, V> F encode(Serializer<F> serializer, V value) {
+		var root = serializer.createRoot();
+		encode(serializer, null, value, root);
+		return root;
+	}
+	
 	public <F, V> void encode(Serializer<F> serializer, V value, F object) {
 		encode(serializer, null, value, object);
 	}
@@ -325,7 +325,13 @@ public abstract class Blueprint<T> {
 			return (Blueprint<T>) BLUEPRINTS.get(clazz);
 		}
 		
-		if (Map.class.isAssignableFrom(clazz)) {
+		if (Optional.class.isAssignableFrom(clazz)) {
+			var blueprint = new GenericOptionalBlueprint();
+			
+			BLUEPRINTS.put(clazz, blueprint);
+			
+			return blueprint;
+		} else if (Map.class.isAssignableFrom(clazz)) {
 			var wrappedMapConstructor = FunctionUtil.wrapConstructor(ReflectionUtil.findConstructor(clazz));
 			
 			if (wrappedMapConstructor == null) {
@@ -359,7 +365,9 @@ public abstract class Blueprint<T> {
 			for (var field : fields) {
 				Blueprint<Object> fieldBlueprint;
 				
-				if (Map.class.isAssignableFrom(field.getType())) {
+				if (Optional.class.isAssignableFrom(field.getType())) {
+					fieldBlueprint = new GenericOptionalBlueprint();
+				} else if (Map.class.isAssignableFrom(field.getType())) {
 					var wrappedMapConstructor = FunctionUtil.wrapConstructor(ReflectionUtil.findConstructor(field.getType()));
 					
 					if (wrappedMapConstructor == null) {
@@ -408,10 +416,6 @@ public abstract class Blueprint<T> {
 				
 				if (wrappedFieldGetter == null || wrappedFieldSetter == null) {
 					continue;
-				}
-				
-				if (field.isAnnotationPresent(Nullable.class)) {
-					fieldBlueprint = fieldBlueprint.nullable();
 				}
 				
 				fieldBlueprints.add(fieldBlueprint);
@@ -464,10 +468,6 @@ public abstract class Blueprint<T> {
 	
 	public static <T> Blueprint<Optional<T>> optional(Blueprint<T> valueBlueprint) {
 		return new OptionalBlueprint<>(valueBlueprint);
-	}
-	
-	public static <T> Blueprint<@Nullable T> nullable(Blueprint<T> valueBlueprint) {
-		return new NullableBlueprint<>(valueBlueprint);
 	}
 	
 	public static <T1, T2> Blueprint<Pair<T1, T2>> pair(Blueprint<T1> firstBlueprint, Blueprint<T2> secondBlueprint) {
