@@ -43,12 +43,12 @@ public class GenericMapBlueprint<M extends Map<Object, Object>> extends Blueprin
 	public <F, I> M decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
 		var map = this.map.get();
 		
-		var exists = deserializer.readBoolean(key + "$Flag", object);
+		var exists = deserializer.readBoolean(metaDataKey(key) + "$Flag", object);
 		
 		if (exists) {
 			try {
-				var keyClass = Class.forName(deserializer.readString(key + "$Key", object));
-				var valueClass = Class.forName(deserializer.readString(key + "$Value", object));
+				var keyClass = Class.forName(deserializer.readString(metaDataKey(key) + "$Key", object));
+				var valueClass = Class.forName(deserializer.readString(metaDataKey(key) + "$Value", object));
 				
 				var keyBlueprint = Blueprint.ofClass((Class<Object>) keyClass);
 				var valueBlueprint = Blueprint.ofClass((Class<Object>) valueClass);

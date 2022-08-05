@@ -43,11 +43,11 @@ public class GenericCollectionBlueprint<C extends Collection<Object>> extends Bl
 	public <F, I> C decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
 		var collection = this.collection.get();
 		
-		var exists = deserializer.readBoolean(key + "$Flag", object);
+		var exists = deserializer.readBoolean(metaDataKey(key) + "$Flag", object);
 		
 		if (exists) {
 			try {
-				var valueClass = Class.forName(deserializer.readString(key + "$Value", object));
+				var valueClass = Class.forName(deserializer.readString(metaDataKey(key) + "$Value", object));
 				
 				var valueBlueprint = Blueprint.ofClass((Class<Object>) valueClass);
 				
