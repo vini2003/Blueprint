@@ -63,7 +63,7 @@ public class GeneratedBlueprint<T> extends Blueprint<T> {
 		}
 		
 		try {
-			return (T) set(clazz.getConstructor(fieldClazzes).newInstance(results), instance);
+			return (T) setter(clazz.getConstructor(fieldClazzes).newInstance(results), instance);
 		} catch (Exception e) {
 			return null;
 		}

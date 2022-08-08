@@ -45,12 +45,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.function.Predicate;
 
 public abstract class Blueprint<T> {
 	private static final Map<Class<?>, Blueprint<?>> BLUEPRINTS = new HashMap<>();
 	
 	protected Function1<?, T> getter;
 	protected Consumer2<?, ?> setter;
+	protected Predicate<?> setterPredicate;
 	
 	protected String key = null;
 	
@@ -58,56 +60,28 @@ public abstract class Blueprint<T> {
 	
 	}
 	
-	public Blueprint(Function1<?, T> getter, Consumer2<?, ?> setter, String key) {
+	public Blueprint(Function1<?, T> getter, Consumer2<?, ?> setter, Predicate<?> setterPredicate, String key) {
 		this.getter = getter;
 		this.setter = setter;
+		this.setterPredicate = setterPredicate;
+		
 		this.key = key;
 	}
 	
-	public <O> Blueprint<T> getter(Function1<O, T> getter) {
-		return new Blueprint<>(getter, null, key) {
-			@Override
-			public <F, I> T decode(Deserializer<F> deserializer, String key, F object, I instance) {
-				return Blueprint.this.decode(deserializer, this.key != null ? this.key : key, object, instance);
-			}
-			
-			@Override
-			public <F, V> void encode(Serializer<F> serializer, String key, V value, F object) {
-				Blueprint.this.encode(serializer, this.key != null ? this.key : key, value, object, (Function1<? super V, T>) this.getter);
-			}
-		};
+	public <O> Blueprint<T> get(Function1<O, T> getter) {
+		return new WrappedBlueprint<>(getter, setter, setterPredicate, key, this);
 	}
 	
-	public <I, J> Blueprint<T> setter(Consumer2<I, J> setter) {
-		return new Blueprint<>(null, setter, key) {
-			@Override
-			public <F, I> T decode(Deserializer<F> deserializer, String key, F object, I instance) {
-				return Blueprint.this.decode(deserializer, this.key != null ? this.key : key, object, instance);
-			}
-			
-			@Override
-			public <F, V> void encode(Serializer<F> serializer, String key, V value, F object) {
-				Blueprint.this.encode(serializer, this.key != null ? this.key : key, value, object, (Function1<? super V, T>) this.getter);
-			}
-		};
+	public <E, J> Blueprint<T> set(Consumer2<E, J> setter) {
+		return new WrappedBlueprint<>(getter, setter, setterPredicate, key, this);
 	}
 	
-	public <O, I, J> Blueprint<T> field(Function1<O, T> getter, Consumer2<I, J> setter) {
-		return new Blueprint<>(getter, setter, key) {
-			@Override
-			public <F, I> T decode(Deserializer<F> deserializer, String key, F object, I instance) {
-				return Blueprint.this.decode(deserializer, this.key != null ? this.key : key, object, instance);
-			}
-			
-			@Override
-			public <F, V> void encode(Serializer<F> serializer, String key, V value, F object) {
-				Blueprint.this.encode(serializer, this.key != null ? this.key : key, value, object, (Function1<? super V, T>) this.getter);
-			}
-		};
+	public <E> Blueprint<T> when(Predicate<E> setterPredicate) {
+		return new WrappedBlueprint<>(getter, setter, setterPredicate, key, this);
 	}
 	
 	public Blueprint<T> key(String key) {
-		return new Blueprint<>(getter, setter, key) {
+		return new Blueprint<>(getter, setter, setterPredicate, key) {
 			@Override
 			public <F, I> T decode(Deserializer<F> deserializer, String key, F object, I instance) {
 				return Blueprint.this.decode(deserializer, this.key, object, instance);
@@ -121,7 +95,7 @@ public abstract class Blueprint<T> {
 	}
 	
 	public <U> Blueprint<U> xmap(Function1<T, U> deserializeMapper, Function1<U, T> serializeMapper) {
-		return new Blueprint<>((Function1<?, U>) getter, setter, key) {
+		return new Blueprint<>((Function1<?, U>) getter, setter, setterPredicate, key) {
 			@Override
 			public <F, I> U decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
 				return deserializeMapper.apply(Blueprint.this.decode(deserializer, key, object, instance));
@@ -129,7 +103,7 @@ public abstract class Blueprint<T> {
 			
 			@Override
 			public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-				Blueprint.this.encode(serializer, key, serializeMapper.apply(get(value)), object);
+				Blueprint.this.encode(serializer, key, serializeMapper.apply(getter(value)), object);
 			}
 		};
 	}
@@ -138,7 +112,7 @@ public abstract class Blueprint<T> {
 		return new CollectionBlueprint<>(this, ArrayList::new);
 	}
 	
-	public Blueprint<Set<T>> set() {
+	public Blueprint<Set<T>> setter() {
 		return new CollectionBlueprint<>(this, HashSet::new);
 	}
 	
@@ -153,108 +127,108 @@ public abstract class Blueprint<T> {
 	public static Blueprint<Boolean> BOOLEAN = new Blueprint<>() {
 		@Override
 		public <F, I> Boolean decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return set(deserializer.readBoolean(key, object), instance);
+			return setter(deserializer.readBoolean(key, object), instance);
 		}
 		
 		@Override
 		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeBoolean(key, get(value), object);
+			serializer.writeBoolean(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Byte> BYTE = new Blueprint<>() {
 		@Override
 		public <F, I> Byte decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return set(deserializer.readByte(key, object), instance);
+			return setter(deserializer.readByte(key, object), instance);
 		}
 		
 		@Override
 		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeByte(key, get(value), object);
+			serializer.writeByte(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Short> SHORT = new Blueprint<>() {
 		@Override
 		public <F, I> Short decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return set(deserializer.readShort(key, object), instance);
+			return setter(deserializer.readShort(key, object), instance);
 		}
 		
 		@Override
 		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeShort(key, get(value), object);
+			serializer.writeShort(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Character> CHARACTER = new Blueprint<>() {
 		@Override
 		public <F, I> Character decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return set(deserializer.readChar(key, object), instance);
+			return setter(deserializer.readChar(key, object), instance);
 		}
 		
 		@Override
 		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeChar(key, get(value), object);
+			serializer.writeChar(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Integer> INTEGER = new Blueprint<>() {
 		@Override
 		public <F, I> Integer decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return set(deserializer.readInt(key, object), instance);
+			return setter(deserializer.readInt(key, object), instance);
 		}
 		
 		@Override
 		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeInt(key, get(value), object);
+			serializer.writeInt(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Long> LONG = new Blueprint<>() {
 		@Override
 		public <F, I> Long decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return set(deserializer.readLong(key, object), instance);
+			return setter(deserializer.readLong(key, object), instance);
 		}
 		
 		@Override
 		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeLong(key, get(value), object);
+			serializer.writeLong(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Float> FLOAT = new Blueprint<>() {
 		@Override
 		public <F, I> Float decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return set(deserializer.readFloat(key, object), instance);
+			return setter(deserializer.readFloat(key, object), instance);
 		}
 		
 		@Override
 		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeFloat(key, get(value), object);
+			serializer.writeFloat(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Double> DOUBLE = new Blueprint<>() {
 		@Override
 		public <F, I> Double decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return set(deserializer.readDouble(key, object), instance);
+			return setter(deserializer.readDouble(key, object), instance);
 		}
 		
 		@Override
 		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeDouble(key, get(value), object);
+			serializer.writeDouble(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<String> STRING = new Blueprint<>() {
 		@Override
 		public <F, I> String decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return set(deserializer.readString(key, object), instance);
+			return setter(deserializer.readString(key, object), instance);
 		}
 		
 		@Override
 		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeString(key, get(value), object);
+			serializer.writeString(key, getter(value), object);
 		}
 	};
 	
@@ -292,13 +266,13 @@ public abstract class Blueprint<T> {
 	
 	public abstract <F, I> T decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance);
 	
-	protected <V> T get(V value) {
+	protected <V> T getter(V value) {
 		return getter == null ? (T) value : ((Function1<V, T>) getter).apply(value);
 	}
 	
-	public <T, I> T set(T value, I instance) {
+	public <T, I> T setter(T value, I instance) {
 		if (instance != null && setter != null) {
-			((Consumer2<I, T>) setter).accept((I) get(instance), value);
+			((Consumer2<I, T>) setter).accept((I) getter(instance), value);
 		}
 		
 		return value;
@@ -313,51 +287,47 @@ public abstract class Blueprint<T> {
 		return getClass().getSimpleName() + "Node[" + (key == null ? "None" : key) + "]";
 	}
 	
-	public static <T> void register(Class<T> clazz, Blueprint<T> blueprint) {
+	@SuppressWarnings("unchecked")
+	public static <T> Blueprint<T> register(Class<?> clazz, Blueprint<?> blueprint) {
 		BLUEPRINTS.put(clazz, blueprint);
+		return (Blueprint<T>) blueprint;
 	}
 	
 	@Nullable
-	public static <T> Blueprint<T> of(T t) {
-		return t instanceof Class<?> ? ofClass((Class<T>) t) : (Blueprint<T>) ofClass(t.getClass());
+	@SuppressWarnings("rawtypes")
+	public static Blueprint of(Object t) {
+		return t instanceof Class<?> clazz ? ofClass(clazz) : ofClass(t.getClass());
 	}
 	
 	@Nullable
-	private static <T> Blueprint<T> ofClass(Class<T> clazz) {
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	private static Blueprint ofClass(Class clazz) {
 		if (BLUEPRINTS.containsKey(clazz)) {
-			return (Blueprint<T>) BLUEPRINTS.get(clazz);
+			return BLUEPRINTS.get(clazz);
 		}
 		
 		if (Optional.class.isAssignableFrom(clazz)) {
-			var blueprint = new GenericOptionalBlueprint();
-			
-			BLUEPRINTS.put(clazz, blueprint);
-			
-			return blueprint;
+			return register(clazz, new GenericOptionalBlueprint());
 		} else if (Map.class.isAssignableFrom(clazz)) {
-			var wrappedMapConstructor = FunctionUtil.wrapConstructor(ReflectionUtil.findConstructor(clazz));
+			var wrappedMapConstructor = FunctionUtil.<Map>wrapConstructor(ReflectionUtil.findConstructor(clazz));
 			
 			if (wrappedMapConstructor == null) {
 				throw new BlueprintException("Map did not have no-argument constructor in class '" + clazz.getName() + "', cannot create blueprint");
 			}
 			
-			var blueprint = new GenericMapBlueprint(wrappedMapConstructor);
-			
-			BLUEPRINTS.put(clazz, blueprint);
-			
-			return blueprint;
+			return register(clazz, new GenericMapBlueprint(wrappedMapConstructor));
 		} else if (Collection.class.isAssignableFrom(clazz)) {
-			var wrappedCollectionConstructor = FunctionUtil.wrapConstructor(ReflectionUtil.findConstructor(clazz));
+			var wrappedCollectionConstructor = FunctionUtil.<Collection>wrapConstructor(ReflectionUtil.findConstructor(clazz));
 			
 			if (wrappedCollectionConstructor == null) {
 				throw new BlueprintException("Collection did not have no-argument constructor in class '" + clazz.getName() + "', cannot create blueprint");
 			}
 			
-			var blueprint = new GenericCollectionBlueprint(wrappedCollectionConstructor);
+			return register(clazz, new GenericCollectionBlueprint(wrappedCollectionConstructor));
+		} else if (clazz.isArray()) {
+			var wrappedCollectionConstructor = CollectionUtil.findDefaultConstructor(List.class);
 			
-			BLUEPRINTS.put(clazz, blueprint);
-			
-			return blueprint;
+			return register(clazz, new GenericCollectionBlueprint(wrappedCollectionConstructor).xmap(Collection::toArray, Arrays::asList));
 		} else if (clazz.isAnnotationPresent(Blueprintable.class)) {
 			var fields = clazz.getDeclaredFields();
 			
@@ -366,12 +336,12 @@ public abstract class Blueprint<T> {
 			var fieldKeys = new ArrayList<String>();
 			
 			for (var field : fields) {
-				Blueprint<Object> fieldBlueprint;
+				Blueprint fieldBlueprint;
 				
 				if (Optional.class.isAssignableFrom(field.getType())) {
 					fieldBlueprint = new GenericOptionalBlueprint();
 				} else if (Map.class.isAssignableFrom(field.getType())) {
-					var wrappedMapConstructor = FunctionUtil.wrapConstructor(ReflectionUtil.findConstructor(field.getType()));
+					var wrappedMapConstructor = FunctionUtil.<Map>wrapConstructor(ReflectionUtil.findConstructor(field.getType()));
 					
 					if (wrappedMapConstructor == null) {
 						wrappedMapConstructor = MapUtil.findDefaultConstructor(field.getType());
@@ -383,7 +353,7 @@ public abstract class Blueprint<T> {
 					
 					fieldBlueprint = new GenericMapBlueprint(wrappedMapConstructor);
 				} else if (Collection.class.isAssignableFrom(field.getType())) {
-					var wrappedCollectionConstructor = FunctionUtil.wrapConstructor(ReflectionUtil.findConstructor(field.getType()));
+					var wrappedCollectionConstructor = FunctionUtil.<Collection>wrapConstructor(ReflectionUtil.findConstructor(field.getType()));
 					
 					if (wrappedCollectionConstructor == null) {
 						wrappedCollectionConstructor = CollectionUtil.findDefaultConstructor(field.getType());
@@ -395,7 +365,7 @@ public abstract class Blueprint<T> {
 				
 					fieldBlueprint = new GenericCollectionBlueprint(wrappedCollectionConstructor);
 				} else {
-					fieldBlueprint = ofClass((Class) field.getType());
+					fieldBlueprint = ofClass(field.getType());
 				}
 				
 				if (fieldBlueprint == null) {
@@ -405,16 +375,12 @@ public abstract class Blueprint<T> {
 				var wrappedFieldGetter = FunctionUtil.wrapGetter(ReflectionUtil.findGetter(clazz, field.getType(), field.getName()));
 				var wrappedFieldSetter = FunctionUtil.wrapSetter(ReflectionUtil.findSetter(clazz, field.getType(), field.getName()));
 				
-				if (wrappedFieldGetter != null && wrappedFieldSetter == null) {
-					fieldBlueprint = fieldBlueprint.getter(wrappedFieldGetter);
+				if (wrappedFieldGetter != null) {
+					fieldBlueprint = fieldBlueprint.get(wrappedFieldGetter);
 				}
 				
-				if (wrappedFieldSetter != null && wrappedFieldGetter == null) {
-					fieldBlueprint = fieldBlueprint.setter(wrappedFieldSetter);
-				}
-				
-				if (wrappedFieldGetter != null && wrappedFieldSetter != null) {
-					fieldBlueprint = fieldBlueprint.field(wrappedFieldGetter, wrappedFieldSetter);
+				if (wrappedFieldSetter != null) {
+					fieldBlueprint = fieldBlueprint.set(wrappedFieldSetter);
 				}
 				
 				if (wrappedFieldGetter == null || wrappedFieldSetter == null) {
@@ -427,22 +393,14 @@ public abstract class Blueprint<T> {
 				fieldKeys.add(field.getName());
 			}
 			
-			var blueprint = new GeneratedBlueprint<T>(clazz, fieldBlueprints.toArray(Blueprint[]::new), fieldTypes.toArray(Class[]::new), fieldKeys.toArray(String[]::new));
-			
-			BLUEPRINTS.put(clazz, blueprint);
-			
-			return blueprint;
+			return register(clazz, new GeneratedBlueprint(clazz, fieldBlueprints.toArray(Blueprint[]::new), fieldTypes.toArray(Class[]::new), fieldKeys.toArray(String[]::new)));
 		} else {
 			var fields = clazz.getDeclaredFields();
 			
 			for (var field : fields) {
 				if (Modifier.isStatic(field.getModifiers()) && field.isAnnotationPresent(DefaultBlueprint.class)) {
 					try {
-						var blueprint = (Blueprint<T>) field.get(null);
-						
-						BLUEPRINTS.put(clazz, blueprint);
-						
-						return blueprint;
+						return register(clazz, (Blueprint) field.get(null));
 					} catch (Exception e) {
 						return null;
 					}
@@ -461,7 +419,7 @@ public abstract class Blueprint<T> {
 		return new CollectionBlueprint<>(valueBlueprint, ArrayList::new);
 	}
 	
-	public static <T> Blueprint<Set<T>> set(Blueprint<T> valueBlueprint) {
+	public static <T> Blueprint<Set<T>> setter(Blueprint<T> valueBlueprint) {
 		return new CollectionBlueprint<>(valueBlueprint, HashSet::new);
 	}
 	
@@ -523,6 +481,54 @@ public abstract class Blueprint<T> {
 	
 	public static <R, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>, N4 extends Blueprint<T4>, N5 extends Blueprint<T5>, N6 extends Blueprint<T6>, N7 extends Blueprint<T7>, N8 extends Blueprint<T8>, N9 extends Blueprint<T9>, N10 extends Blueprint<T10>, N11 extends Blueprint<T11>, N12 extends Blueprint<T12>> CompoundBlueprint12<R, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, N1, N2, N3, N4, N5, N6, N7, N8, N9, N10, N11, N12> compound(N1 n1, N2 n2, N3 n3, N4 n4, N5 n5, N6 n6, N7 n7, N8 n8, N9 n9, N10 n10, N11 n11, N12 n12, Function12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, R> mapper) {
 		return new CompoundBlueprint12<>(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, mapper);
+	}
+	
+	public static <R, T1, N1 extends Blueprint<T1>> CompoundBlueprint1<R, T1, N1> compound(N1 n1) {
+		return new CompoundBlueprint1<>(n1, Function1.empty());
+	}
+	
+	public static <R, T1, T2, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>> CompoundBlueprint2<R, T1, T2, N1, N2> compound(N1 n1, N2 n2) {
+		return new CompoundBlueprint2<>(n1, n2, Function2.empty());
+	}
+	
+	public static <R, T1, T2, T3, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>> CompoundBlueprint3<R, T1, T2, T3, N1, N2, N3> compound(N1 n1, N2 n2, N3 n3) {
+		return new CompoundBlueprint3<>(n1, n2, n3, Function3.empty());
+	}
+	
+	public static <R, T1, T2, T3, T4, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>, N4 extends Blueprint<T4>> CompoundBlueprint4<R, T1, T2, T3, T4, N1, N2, N3, N4> compound(N1 n1, N2 n2, N3 n3, N4 n4) {
+		return new CompoundBlueprint4<>(n1, n2, n3, n4, Function4.empty());
+	}
+	
+	public static <R, T1, T2, T3, T4, T5, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>, N4 extends Blueprint<T4>, N5 extends Blueprint<T5>> CompoundBlueprint5<R, T1, T2, T3, T4, T5, N1, N2, N3, N4, N5> compound(N1 n1, N2 n2, N3 n3, N4 n4, N5 n5) {
+		return new CompoundBlueprint5<>(n1, n2, n3, n4, n5, Function5.empty());
+	}
+	
+	public static <R, T1, T2, T3, T4, T5, T6, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>, N4 extends Blueprint<T4>, N5 extends Blueprint<T5>, N6 extends Blueprint<T6>> CompoundBlueprint6<R, T1, T2, T3, T4, T5, T6, N1, N2, N3, N4, N5, N6> compound(N1 n1, N2 n2, N3 n3, N4 n4, N5 n5, N6 n6) {
+		return new CompoundBlueprint6<>(n1, n2, n3, n4, n5, n6, Function6.empty());
+	}
+	
+	public static <R, T1, T2, T3, T4, T5, T6, T7, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>, N4 extends Blueprint<T4>, N5 extends Blueprint<T5>, N6 extends Blueprint<T6>, N7 extends Blueprint<T7>> CompoundBlueprint7<R, T1, T2, T3, T4, T5, T6, T7, N1, N2, N3, N4, N5, N6, N7> compound(N1 n1, N2 n2, N3 n3, N4 n4, N5 n5, N6 n6, N7 n7) {
+		return new CompoundBlueprint7<>(n1, n2, n3, n4, n5, n6, n7, Function7.empty());
+	}
+	
+	public static <R, T1, T2, T3, T4, T5, T6, T7, T8, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>, N4 extends Blueprint<T4>, N5 extends Blueprint<T5>, N6 extends Blueprint<T6>, N7 extends Blueprint<T7>, N8 extends Blueprint<T8>> CompoundBlueprint8<R, T1, T2, T3, T4, T5, T6, T7, T8, N1, N2, N3, N4, N5, N6, N7, N8> compound(N1 n1, N2 n2, N3 n3, N4 n4, N5 n5, N6 n6, N7 n7, N8 n8) {
+		return new CompoundBlueprint8<>(n1, n2, n3, n4, n5, n6, n7, n8, Function8.empty());
+	}
+	
+	public static <R, T1, T2, T3, T4, T5, T6, T7, T8, T9, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>, N4 extends Blueprint<T4>, N5 extends Blueprint<T5>, N6 extends Blueprint<T6>, N7 extends Blueprint<T7>, N8 extends Blueprint<T8>, N9 extends Blueprint<T9>> CompoundBlueprint9<R, T1, T2, T3, T4, T5, T6, T7, T8, T9, N1, N2, N3, N4, N5, N6, N7, N8, N9> compound(N1 n1, N2 n2, N3 n3, N4 n4, N5 n5, N6 n6, N7 n7, N8 n8, N9 n9) {
+		return new CompoundBlueprint9<>(n1, n2, n3, n4, n5, n6, n7, n8, n9, Function9.empty());
+	}
+	
+	public static <R, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>, N4 extends Blueprint<T4>, N5 extends Blueprint<T5>, N6 extends Blueprint<T6>, N7 extends Blueprint<T7>, N8 extends Blueprint<T8>, N9 extends Blueprint<T9>, N10 extends Blueprint<T10>> CompoundBlueprint10<R, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, N1, N2, N3, N4, N5, N6, N7, N8, N9, N10> compound(N1 n1, N2 n2, N3 n3, N4 n4, N5 n5, N6 n6, N7 n7, N8 n8, N9 n9, N10 n10) {
+		return new CompoundBlueprint10<>(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, Function10.empty());
+	}
+	
+	public static <R, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>, N4 extends Blueprint<T4>, N5 extends Blueprint<T5>, N6 extends Blueprint<T6>, N7 extends Blueprint<T7>, N8 extends Blueprint<T8>, N9 extends Blueprint<T9>, N10 extends Blueprint<T10>, N11 extends Blueprint<T11>> CompoundBlueprint11<R, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, N1, N2, N3, N4, N5, N6, N7, N8, N9, N10, N11> compound(N1 n1, N2 n2, N3 n3, N4 n4, N5 n5, N6 n6, N7 n7, N8 n8, N9 n9, N10 n10, N11 n11) {
+		return new CompoundBlueprint11<>(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, Function11.empty());
+	}
+	
+	public static <R, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, N1 extends Blueprint<T1>, N2 extends Blueprint<T2>, N3 extends Blueprint<T3>, N4 extends Blueprint<T4>, N5 extends Blueprint<T5>, N6 extends Blueprint<T6>, N7 extends Blueprint<T7>, N8 extends Blueprint<T8>, N9 extends Blueprint<T9>, N10 extends Blueprint<T10>, N11 extends Blueprint<T11>, N12 extends Blueprint<T12>> CompoundBlueprint12<R, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, N1, N2, N3, N4, N5, N6, N7, N8, N9, N10, N11, N12> compound(N1 n1, N2 n2, N3 n3, N4 n4, N5 n5, N6 n6, N7 n7, N8 n8, N9 n9, N10 n10, N11 n11, N12 n12) {
+		return new CompoundBlueprint12<>(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, Function12.empty());
 	}
 	
 	static {

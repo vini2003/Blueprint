@@ -26,5 +26,9 @@ package dev.vini2003.blueprint.function;
 
 @FunctionalInterface
 public interface Function1<P1, R> {
+	static <P1, R> Function1<P1, R> empty() {
+		return ($) -> (R) null;
+	}
+	
 	R apply(P1 p1);
 }

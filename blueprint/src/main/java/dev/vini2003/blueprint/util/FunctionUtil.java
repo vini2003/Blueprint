@@ -34,14 +34,15 @@ import java.lang.reflect.Method;
 
 public class FunctionUtil {
 	@Nullable
-	public static <T> Supplier1<@Nullable T> wrapConstructor(Constructor<T> constructor) {
+	@SuppressWarnings("unchecked")
+	public static <R> Supplier1<@Nullable R> wrapConstructor(Constructor<?> constructor) {
 		if (constructor == null) {
 			return null;
 		}
 		
 		return () -> {
 			try {
-				return constructor.newInstance();
+				return (R) constructor.newInstance();
 			} catch (Exception e) {
 				return null;
 			}

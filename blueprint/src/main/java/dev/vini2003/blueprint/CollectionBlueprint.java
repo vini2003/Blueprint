@@ -48,12 +48,12 @@ public class CollectionBlueprint<T, N extends Blueprint<T>, C extends Collection
 		
 		deserializer.readCollection(n, key, object, collection::add);
 		
-		return set(collection, instance);
+		return setter(collection, instance);
 	}
 	
 	@Override
 	public <F, O> void encode(Serializer<F> serializer, @Nullable String key, O value, F object) {
-		serializer.writeCollection(n, key, get(value), object);
+		serializer.writeCollection(n, key, getter(value), object);
 	}
 	
 	@Override

@@ -8,7 +8,8 @@ import java.util.Map;
 
 public class MapUtil {
 	@Nullable
-	public static Supplier1<? extends Map<?, ?>> findDefaultConstructor(Class<?> clazz) {
+	@SuppressWarnings("rawtypes")
+	public static Supplier1<Map> findDefaultConstructor(Class clazz) {
 		return HashMap::new;
 	}
 }

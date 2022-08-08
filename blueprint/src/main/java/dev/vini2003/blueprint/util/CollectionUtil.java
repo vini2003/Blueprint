@@ -7,7 +7,8 @@ import java.util.*;
 
 public class CollectionUtil {
 	@Nullable
-	public static Supplier1<? extends Collection<?>> findDefaultConstructor(Class<?> clazz) {
+	@SuppressWarnings("rawtypes")
+	public static Supplier1<Collection> findDefaultConstructor(Class<?> clazz) {
 		if (List.class.isAssignableFrom(clazz)) {
 			return ArrayList::new;
 		} else if (Set.class.isAssignableFrom(clazz)) {

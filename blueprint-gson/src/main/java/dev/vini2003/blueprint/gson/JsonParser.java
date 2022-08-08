@@ -43,6 +43,45 @@ import java.util.Map;
 public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonElement> {
 	public static final JsonParser INSTANCE = new JsonParser();
 	
+	public static class Test {
+		public static Blueprint<Test> BLUEPRINT = Blueprint.compound(
+				Blueprint.STRING.key("foo").get(Test::getFoo).set(Test::setFoo).when(Test::shouldSet)
+		);
+		
+		String foo = "foo";
+		
+		boolean shouldSetFoo = true;
+		
+		public Test(String foo, boolean shouldSetFoo) {
+			this.foo = foo;
+			this.shouldSetFoo = shouldSetFoo;
+		}
+		
+		public void setFoo(String foo) {
+			this.foo = foo;
+		}
+		
+		public String getFoo() {
+			return foo;
+		}
+		
+		public void setShouldSetFoo(boolean shouldSetFoo) {
+			this.shouldSetFoo = shouldSetFoo;
+		}
+		
+		public boolean shouldSet() {
+			return shouldSetFoo;
+		}
+	}
+	
+	public static void main(String[] args) {
+		var test = new Test("foo", true);
+		var json = Test.BLUEPRINT.encode(INSTANCE, test);
+		((JsonObject) json).addProperty("foo", "bar");
+		var test2 = Test.BLUEPRINT.decode(INSTANCE, json, test);
+		System.out.println(test2.getFoo());
+	}
+	
 	@Override
 	public JsonElement createRoot() {
 		return new JsonObject();

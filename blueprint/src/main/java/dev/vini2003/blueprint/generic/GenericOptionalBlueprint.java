@@ -31,9 +31,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class GenericOptionalBlueprint<O extends Optional<?>> extends Blueprint<O> {
+@SuppressWarnings({"unchecked", "rawtypes"})
+public class GenericOptionalBlueprint extends Blueprint<Optional> {
 	@Override
-	public <F, I> O decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
+	public <F, I> Optional decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
 		var map = deserializer.read(key, object);
 		
 		var exists = deserializer.readBoolean("Exists", map);
@@ -44,12 +45,12 @@ public class GenericOptionalBlueprint<O extends Optional<?>> extends Blueprint<O
 				
 				var valueBlueprint = Blueprint.of(valueClass);
 				
-				return (O) set(Optional.of(valueBlueprint.decode(deserializer, "Value", map)), instance);
+				return setter(Optional.of(valueBlueprint.decode(deserializer, "Value", map)), instance);
 			} catch (Exception e) {
-				return (O) set(Optional.empty(), instance);
+				return setter(Optional.empty(), instance);
 			}
 		} else {
-			return (O) set(Optional.empty(), instance);
+			return setter(Optional.empty(), instance);
 		}
 	}
 	
@@ -57,7 +58,7 @@ public class GenericOptionalBlueprint<O extends Optional<?>> extends Blueprint<O
 	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
 		var map = serializer.createMap(object);
 		
-		var valueOptional = get(value);
+		var valueOptional = getter(value);
 		
 		if (valueOptional.isPresent()) {
 			var entry = valueOptional.get();

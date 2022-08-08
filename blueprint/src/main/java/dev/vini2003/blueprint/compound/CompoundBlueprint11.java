@@ -66,24 +66,36 @@ public class CompoundBlueprint11<R, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11
 	public <F, I> R decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
 		var map = deserializer.read(key, object);
 		
-		return set(mapper.apply(n1.decode(deserializer, key, map, instance), n2.decode(deserializer, key, map, instance), n3.decode(deserializer, key, map, instance), n4.decode(deserializer, key, map, instance), n5.decode(deserializer, key, map, instance), n6.decode(deserializer, key, map, instance), n7.decode(deserializer, key, map, instance), n8.decode(deserializer, key, map, instance), n9.decode(deserializer, key, map, instance), n10.decode(deserializer, key, map, instance), n11.decode(deserializer, key, map, instance)), instance);
+		return setter(mapper.apply(
+				n1.setter(n1.decode(deserializer, key, map, instance), instance),
+				n2.setter(n2.decode(deserializer, key, map, instance), instance),
+				n3.setter(n3.decode(deserializer, key, map, instance), instance),
+				n4.setter(n4.decode(deserializer, key, map, instance), instance),
+				n5.setter(n5.decode(deserializer, key, map, instance), instance),
+				n6.setter(n6.decode(deserializer, key, map, instance), instance),
+				n7.setter(n7.decode(deserializer, key, map, instance), instance),
+				n8.setter(n8.decode(deserializer, key, map, instance), instance),
+				n9.setter(n9.decode(deserializer, key, map, instance), instance),
+				n10.setter(n10.decode(deserializer, key, map, instance), instance),
+				n11.setter(n11.decode(deserializer, key, map, instance), instance)
+		), instance);
 	}
 	
 	@Override
 	public <F, O> void encode(Serializer<F> serializer, @Nullable String key, O value, F object) {
 		var map = serializer.createMap(object);
 		
-		n1.encode(serializer, key, get(value), map);
-		n2.encode(serializer, key, get(value), map);
-		n3.encode(serializer, key, get(value), map);
-		n4.encode(serializer, key, get(value), map);
-		n5.encode(serializer, key, get(value), map);
-		n6.encode(serializer, key, get(value), map);
-		n7.encode(serializer, key, get(value), map);
-		n8.encode(serializer, key, get(value), map);
-		n9.encode(serializer, key, get(value), map);
-		n10.encode(serializer, key, get(value), map);
-		n11.encode(serializer, key, get(value), map);
+		n1.encode(serializer, key, getter(value), map);
+		n2.encode(serializer, key, getter(value), map);
+		n3.encode(serializer, key, getter(value), map);
+		n4.encode(serializer, key, getter(value), map);
+		n5.encode(serializer, key, getter(value), map);
+		n6.encode(serializer, key, getter(value), map);
+		n7.encode(serializer, key, getter(value), map);
+		n8.encode(serializer, key, getter(value), map);
+		n9.encode(serializer, key, getter(value), map);
+		n10.encode(serializer, key, getter(value), map);
+		n11.encode(serializer, key, getter(value), map);
 		
 		serializer.write(key, map, object);
 	}

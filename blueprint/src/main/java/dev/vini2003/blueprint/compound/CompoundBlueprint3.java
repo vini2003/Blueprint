@@ -50,16 +50,20 @@ public class CompoundBlueprint3<R, T1, T2, T3, N1 extends Blueprint<T1>, N2 exte
 	public <F, I> R decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
 		var map = deserializer.read(key, object);
 		
-		return set(mapper.apply(n1.decode(deserializer, key, map, instance), n2.decode(deserializer, key, map, instance), n3.decode(deserializer, key, map, instance)), instance);
+		return setter(mapper.apply(
+				n1.setter(n1.decode(deserializer, key, map, instance), instance),
+				n2.setter(n2.decode(deserializer, key, map, instance), instance),
+				n3.setter(n3.decode(deserializer, key, map, instance), instance)
+		), instance);
 	}
 	
 	@Override
 	public <F, O> void encode(Serializer<F> serializer, @Nullable String key, O value, F object) {
 		var map = serializer.createMap(object);
 		
-		n1.encode(serializer, key, get(value), map);
-		n2.encode(serializer, key, get(value), map);
-		n3.encode(serializer, key, get(value), map);
+		n1.encode(serializer, key, getter(value), map);
+		n2.encode(serializer, key, getter(value), map);
+		n3.encode(serializer, key, getter(value), map);
 		
 		serializer.write(key, map, object);
 	}

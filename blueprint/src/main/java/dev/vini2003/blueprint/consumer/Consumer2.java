@@ -26,5 +26,9 @@ package dev.vini2003.blueprint.consumer;
 
 @FunctionalInterface
 public interface Consumer2<P1, P2> {
+	static <P1, P2> Consumer2<P1, P2> empty() {
+		return (p1, p2) -> {};
+	}
+	
 	void accept(P1 p1, P2 p2);
 }

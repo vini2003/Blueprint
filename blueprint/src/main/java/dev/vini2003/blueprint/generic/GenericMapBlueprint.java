@@ -32,15 +32,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public class GenericMapBlueprint<M extends Map<Object, Object>> extends Blueprint<M> {
-	private final Supplier1<M> map;
+@SuppressWarnings({"unchecked", "rawtypes"})
+public class GenericMapBlueprint extends Blueprint<Map> {
+	private final Supplier1<Map> map;
 	
-	public GenericMapBlueprint(Supplier1<M> map) {
+	public GenericMapBlueprint(Supplier1<Map> map) {
 		this.map = map;
 	}
 	
 	@Override
-	public <F, I> M decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
+	public <F, I> Map decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
 		var map = deserializer.read(key, object);
 		
 		var newMap = this.map.get();
@@ -70,10 +71,10 @@ public class GenericMapBlueprint<M extends Map<Object, Object>> extends Blueprin
 	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
 		var map = serializer.createMap(object);
 		
-		var valueMap = get(value);
+		var valueMap = getter(value);
 		
 		if (!valueMap.isEmpty()) {
-			var entry = valueMap.entrySet().stream().findFirst().orElseThrow();
+			var entry = (Map.Entry) valueMap.entrySet().stream().findFirst().orElseThrow();
 			
 			var keyBlueprint = Blueprint.of(entry.getKey());
 			var valueBlueprint = Blueprint.of(entry.getValue());

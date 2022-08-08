@@ -43,14 +43,14 @@ public class PairBlueprint<T1, T2, N1 extends Blueprint<T1>, N2 extends Blueprin
 	public <F, I> Pair<T1, T2> decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
 		var map = deserializer.read(key, object);
 		
-		return set(new Pair<>(n1.decode(deserializer, key, map, instance), n2.decode(deserializer, key, map, instance)), instance);
+		return setter(new Pair<>(n1.decode(deserializer, key, map, instance), n2.decode(deserializer, key, map, instance)), instance);
 	}
 	
 	@Override
 	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
 		var map = serializer.createMap(object);
 		
-		var result = get(value);
+		var result = getter(value);
 		
 		if (result != null) {
 			n1.encode(serializer, "First", result.getFirst(), map);

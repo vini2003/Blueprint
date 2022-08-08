@@ -50,12 +50,12 @@ public class MapBlueprint<T1, T2, N1 extends Blueprint<T1>, N2 extends Blueprint
 		
 		deserializer.readMap(n1, n2, key, object, map::put);
 		
-		return set(map, instance);
+		return setter(map, instance);
 	}
 	
 	@Override
 	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		serializer.writeMap(n1, n2, key, get(value), object);
+		serializer.writeMap(n1, n2, key, getter(value), object);
 	}
 	
 	@Override
