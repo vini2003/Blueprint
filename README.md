@@ -14,7 +14,7 @@ A library to aid in the abstraction of encoding/decoding objects to/from multipl
     }
   
     dependencies {
-        implementation 'dev.vini2003:blueprint:0.1.11'
+        implementation 'dev.vini2003:blueprint:0.1.12'
     } 
     ```
 
@@ -23,22 +23,22 @@ A library to aid in the abstraction of encoding/decoding objects to/from multipl
 
   - **Fabric** (**BufParser**, **NbtParser**, **JsonParser**)
     ```groovy
-      implementation 'dev.vini2003:blueprint-fabric:0.1.11'
+      implementation 'dev.vini2003:blueprint-fabric:0.1.12'
     ```
     
   - **Paper** (**BufParser**, **NbtParser**, **JsonParser**)
     ```groovy
-      implementation 'dev.vini2003:blueprint-paper:0.1.11'
+      implementation 'dev.vini2003:blueprint-paper:0.1.12'
     ```
 
   - **GSON** (**JsonParser**)
     ```groovy
-      implementation 'dev.vini2003:blueprint-gson:0.1.11'
+      implementation 'dev.vini2003:blueprint-gson:0.1.12'
     ```
   
   - **Netty** (**BufParser**)
     ```groovy
-      implementation 'dev.vini2003:blueprint-netty:0.1.11'
+      implementation 'dev.vini2003:blueprint-netty:0.1.12'
     ```
     
   
