@@ -24,8 +24,8 @@
 
 package dev.vini2003.blueprint;
 
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -38,10 +38,10 @@ public class OptionalBlueprint<T, N extends Blueprint<T>> extends Blueprint<Opti
 	}
 	
 	@Override
-	public <F, I> Optional<T> decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		if (deserializer.readBoolean(metaDataKey(key) + "Flag", object)) {
+	public <F, I> Optional<T> decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+		if (decoder.readBoolean(metaDataKey(key) + "Flag", object)) {
 			try {
-				return setter(Optional.of(n.decode(deserializer, key, object, instance)), instance);
+				return setter(Optional.of(n.decode(decoder, key, object, instance)), instance);
 			} catch (Exception exception) {
 				return setter(Optional.empty(), instance);
 			}
@@ -51,14 +51,14 @@ public class OptionalBlueprint<T, N extends Blueprint<T>> extends Blueprint<Opti
 	}
 	
 	@Override
-	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
+	public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
 		var result = getter(value);
 		
 		if (result.isPresent()) {
-			serializer.writeBoolean(metaDataKey(key) + "Flag", true, object);
-			n.encode(serializer, key, result, object);
+			encoder.writeBoolean(metaDataKey(key) + "Flag", true, object);
+			n.encode(encoder, key, result, object);
 		} else {
-			serializer.writeBoolean(metaDataKey(key) + "Flag", false, object);
+			encoder.writeBoolean(metaDataKey(key) + "Flag", false, object);
 		}
 	}
 	
@@ -68,6 +68,6 @@ public class OptionalBlueprint<T, N extends Blueprint<T>> extends Blueprint<Opti
 	
 	@Override
 	public String toString() {
-		return "OptionalNode[" + (key == null ? "None" : key) + ", " + n + "]";
+		return "OptionalBlueprint[" + (key == null ? "None" : key) + ", " + n + "]";
 	}
 }

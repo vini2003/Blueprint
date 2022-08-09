@@ -27,8 +27,8 @@ package dev.vini2003.blueprint.netty;
 import dev.vini2003.blueprint.Blueprint;
 import dev.vini2003.blueprint.consumer.Consumer1;
 import dev.vini2003.blueprint.consumer.Consumer2;
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 
-public class BufParser implements Serializer<ByteBuf>, Deserializer<ByteBuf> {
+public class BufParser implements Encoder<ByteBuf>, Decoder<ByteBuf> {
 	public static final BufParser INSTANCE = new BufParser();
 	
 	@Override

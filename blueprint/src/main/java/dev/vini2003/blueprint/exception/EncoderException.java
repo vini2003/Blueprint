@@ -24,23 +24,23 @@
 
 package dev.vini2003.blueprint.exception;
 
-public class SerializerException extends RuntimeException{
-	public SerializerException() {
+public class EncoderException extends RuntimeException{
+	public EncoderException() {
 	}
 	
-	public SerializerException(String message) {
+	public EncoderException(String message) {
 		super(message);
 	}
 	
-	public SerializerException(String message, Throwable cause) {
+	public EncoderException(String message, Throwable cause) {
 		super(message, cause);
 	}
 	
-	public SerializerException(Throwable cause) {
+	public EncoderException(Throwable cause) {
 		super(cause);
 	}
 	
-	public SerializerException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+	public EncoderException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
 }

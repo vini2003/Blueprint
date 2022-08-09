@@ -31,16 +31,16 @@ import com.google.gson.JsonPrimitive;
 import dev.vini2003.blueprint.Blueprint;
 import dev.vini2003.blueprint.consumer.Consumer1;
 import dev.vini2003.blueprint.consumer.Consumer2;
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
-import dev.vini2003.blueprint.exception.DeserializerException;
-import dev.vini2003.blueprint.exception.SerializerException;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
+import dev.vini2003.blueprint.exception.DecoderException;
+import dev.vini2003.blueprint.exception.EncoderException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
 
-public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonElement> {
+public class JsonParser implements Encoder<JsonElement>, Decoder<JsonElement> {
 	public static final JsonParser INSTANCE = new JsonParser();
 	
 	@Override
@@ -80,12 +80,12 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 		} else {
 			if (object instanceof JsonObject jsonObject) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed boolean to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed boolean to " + object.getClass().getName());
 				}
 				
 				jsonObject.addProperty(key, value);
 			} else {
-				throw new SerializerException("Cannot write boolean to " + object.getClass().getName());
+				throw new EncoderException("Cannot write boolean to " + object.getClass().getName());
 			}
 		}
 	}
@@ -97,12 +97,12 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 		} else {
 			if (object instanceof JsonObject jsonObject) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed byte to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed byte to " + object.getClass().getName());
 				}
 				
 				jsonObject.addProperty(key, value);
 			} else {
-				throw new SerializerException("Cannot write byte to " + object.getClass().getName());
+				throw new EncoderException("Cannot write byte to " + object.getClass().getName());
 			}
 		}
 	}
@@ -114,12 +114,12 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 		} else {
 			if (object instanceof JsonObject jsonObject) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed short to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed short to " + object.getClass().getName());
 				}
 				
 				jsonObject.addProperty(key, value);
 			} else {
-				throw new SerializerException("Cannot write short to " + object.getClass().getName());
+				throw new EncoderException("Cannot write short to " + object.getClass().getName());
 			}
 		}
 	}
@@ -131,12 +131,12 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 		} else {
 			if (object instanceof JsonObject jsonObject) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed char to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed char to " + object.getClass().getName());
 				}
 				
 				jsonObject.addProperty(key, value);
 			} else {
-				throw new SerializerException("Cannot write char to " + object.getClass().getName());
+				throw new EncoderException("Cannot write char to " + object.getClass().getName());
 			}
 		}
 	}
@@ -148,12 +148,12 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 		} else {
 			if (object instanceof JsonObject jsonObject) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed int to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed int to " + object.getClass().getName());
 				}
 				
 				jsonObject.addProperty(key, value);
 			} else {
-				throw new SerializerException("Cannot write int to " + object.getClass().getName());
+				throw new EncoderException("Cannot write int to " + object.getClass().getName());
 			}
 		}
 	}
@@ -164,13 +164,13 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			jsonArray.add(new JsonPrimitive(value));
 		} else {
 			if (key == null) {
-				throw new SerializerException("Cannot write non-keyed long to " + object.getClass().getName());
+				throw new EncoderException("Cannot write non-keyed long to " + object.getClass().getName());
 			}
 			
 			if (object instanceof JsonObject jsonObject) {
 				jsonObject.addProperty(key, value);
 			} else {
-				throw new SerializerException("Cannot write long to " + object.getClass().getName());
+				throw new EncoderException("Cannot write long to " + object.getClass().getName());
 			}
 		}
 	}
@@ -182,12 +182,12 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 		} else {
 			if (object instanceof JsonObject jsonObject) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed float to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed float to " + object.getClass().getName());
 				}
 				
 				jsonObject.addProperty(key, value);
 			} else {
-				throw new SerializerException("Cannot write float to " + object.getClass().getName());
+				throw new EncoderException("Cannot write float to " + object.getClass().getName());
 			}
 		}
 	}
@@ -199,12 +199,12 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 		} else {
 			if (object instanceof JsonObject jsonObject) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed double to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed double to " + object.getClass().getName());
 				}
 				
 				jsonObject.addProperty(key, value);
 			} else {
-				throw new SerializerException("Cannot write double to " + object.getClass().getName());
+				throw new EncoderException("Cannot write double to " + object.getClass().getName());
 			}
 		}
 	}
@@ -216,12 +216,12 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 		} else {
 			if (object instanceof JsonObject jsonObject) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed String to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed String to " + object.getClass().getName());
 				}
 				
 				jsonObject.addProperty(key, value);
 			} else {
-				throw new SerializerException("Cannot write string to " + object.getClass().getName());
+				throw new EncoderException("Cannot write string to " + object.getClass().getName());
 			}
 		}
 	}
@@ -252,7 +252,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 				jsonObject.add(key, mapJsonObject);
 			}
 		} else {
-			throw new SerializerException("Cannot write map to " + object.getClass().getName());
+			throw new EncoderException("Cannot write map to " + object.getClass().getName());
 		}
 	}
 	
@@ -260,7 +260,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public <V, C extends Collection<V>> void writeCollection(Blueprint<V> valueBlueprint, @Nullable String key, C value, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new SerializerException("Cannot write non-keyed Collection to " + object.getClass().getName());
+				throw new EncoderException("Cannot write non-keyed Collection to " + object.getClass().getName());
 			}
 			
 			var jsonArray = new JsonArray();
@@ -291,7 +291,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			
 			return jsonObject.get(key);
 		} else {
-			throw new DeserializerException("Cannot read element from " + object.getClass().getName());
+			throw new DecoderException("Cannot read element from " + object.getClass().getName());
 		}
 	}
 	
@@ -299,7 +299,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public boolean readBoolean(@Nullable String key, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed boolean from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed boolean from " + object.getClass().getName());
 			}
 			
 			return jsonObject.get(key).getAsBoolean();
@@ -307,7 +307,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			if (object instanceof JsonPrimitive jsonPrimitive) {
 				return jsonPrimitive.getAsBoolean();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -316,7 +316,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public byte readByte(@Nullable String key, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed byte from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed byte from " + object.getClass().getName());
 			}
 			
 			return jsonObject.get(key).getAsByte();
@@ -324,7 +324,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			if (object instanceof JsonPrimitive jsonPrimitive) {
 				return jsonPrimitive.getAsByte();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -333,7 +333,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public short readShort(@Nullable String key, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed short from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed short from " + object.getClass().getName());
 			}
 			
 			return jsonObject.get(key).getAsShort();
@@ -341,7 +341,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			if (object instanceof JsonPrimitive jsonPrimitive) {
 				return jsonPrimitive.getAsShort();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -350,7 +350,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public char readChar(@Nullable String key, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed char from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed char from " + object.getClass().getName());
 			}
 			
 			return jsonObject.get(key).getAsJsonPrimitive().getAsCharacter();
@@ -358,7 +358,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			if (object instanceof JsonPrimitive jsonPrimitive) {
 				return jsonPrimitive.getAsCharacter();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -367,7 +367,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public int readInt(@Nullable String key, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed int from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed int from " + object.getClass().getName());
 			}
 			
 			return jsonObject.get(key).getAsInt();
@@ -375,7 +375,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			if (object instanceof JsonPrimitive jsonPrimitive) {
 				return jsonPrimitive.getAsInt();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -384,7 +384,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public long readLong(@Nullable String key, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed long from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed long from " + object.getClass().getName());
 			}
 			
 			return jsonObject.get(key).getAsLong();
@@ -392,7 +392,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			if (object instanceof JsonPrimitive jsonPrimitive) {
 				return jsonPrimitive.getAsLong();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -401,7 +401,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public float readFloat(@Nullable String key, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed float from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed float from " + object.getClass().getName());
 			}
 			
 			return jsonObject.get(key).getAsFloat();
@@ -409,7 +409,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			if (object instanceof JsonPrimitive jsonPrimitive) {
 				return jsonPrimitive.getAsFloat();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -418,7 +418,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public double readDouble(@Nullable String key, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed double from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed double from " + object.getClass().getName());
 			}
 			
 			return jsonObject.get(key).getAsDouble();
@@ -426,7 +426,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			if (object instanceof JsonPrimitive jsonPrimitive) {
 				return jsonPrimitive.getAsDouble();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -435,7 +435,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public String readString(@Nullable String key, JsonElement object) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed String from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed String from " + object.getClass().getName());
 			}
 			
 			return jsonObject.get(key).getAsString();
@@ -443,7 +443,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 			if (object instanceof JsonPrimitive jsonPrimitive) {
 				return jsonPrimitive.getAsString();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -464,7 +464,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 				} catch (Exception ignored) {}
 			}
 		} else {
-			throw new DeserializerException();
+			throw new DecoderException();
 		}
 	}
 	
@@ -472,7 +472,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 	public <V> void readCollection(Blueprint<V> valueBlueprint, @Nullable String key, JsonElement object, Consumer1<V> collector) {
 		if (object instanceof JsonObject jsonObject) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed List from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed List from " + object.getClass().getName());
 			}
 			
 			var jsonArray = jsonObject.get(key).getAsJsonArray();
@@ -492,7 +492,7 @@ public class JsonParser implements Serializer<JsonElement>, Deserializer<JsonEle
 					collector.accept(valueDeserialized);
 				}
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}

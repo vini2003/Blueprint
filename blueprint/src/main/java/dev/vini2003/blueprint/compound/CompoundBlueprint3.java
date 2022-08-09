@@ -25,8 +25,8 @@
 package dev.vini2003.blueprint.compound;
 
 import dev.vini2003.blueprint.Blueprint;
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import dev.vini2003.blueprint.function.Function3;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,29 +47,29 @@ public class CompoundBlueprint3<R, T1, T2, T3, N1 extends Blueprint<T1>, N2 exte
 	}
 	
 	@Override
-	public <F, I> R decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		var map = deserializer.read(key, object);
+	public <F, I> R decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+		var map = decoder.read(key, object);
 		
 		return setter(mapper.apply(
-				n1.setter(n1.decode(deserializer, key, map, instance), instance),
-				n2.setter(n2.decode(deserializer, key, map, instance), instance),
-				n3.setter(n3.decode(deserializer, key, map, instance), instance)
+				n1.setter(n1.decode(decoder, key, map, instance), instance),
+				n2.setter(n2.decode(decoder, key, map, instance), instance),
+				n3.setter(n3.decode(decoder, key, map, instance), instance)
 		), instance);
 	}
 	
 	@Override
-	public <F, O> void encode(Serializer<F> serializer, @Nullable String key, O value, F object) {
-		var map = serializer.createMap(object);
+	public <F, O> void encode(Encoder<F> encoder, @Nullable String key, O value, F object) {
+		var map = encoder.createMap(object);
 		
-		n1.encode(serializer, key, getter(value), map);
-		n2.encode(serializer, key, getter(value), map);
-		n3.encode(serializer, key, getter(value), map);
+		n1.encode(encoder, key, getter(value), map);
+		n2.encode(encoder, key, getter(value), map);
+		n3.encode(encoder, key, getter(value), map);
 		
-		serializer.write(key, map, object);
+		encoder.write(key, map, object);
 	}
 	
 	@Override
 	public String toString() {
-		return "CompoundNode[" + (key == null ? "None" : key) + ", " + n1 + ", " + n2 + ", " + n3 + "]";
+		return "CompoundBlueprint[" + (key == null ? "None" : key) + ", " + n1 + ", " + n2 + ", " + n3 + "]";
 	}
 }

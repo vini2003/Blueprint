@@ -24,23 +24,23 @@
 
 package dev.vini2003.blueprint.exception;
 
-public class DeserializerException extends RuntimeException{
-	public DeserializerException() {
+public class DecoderException extends RuntimeException{
+	public DecoderException() {
 	}
 	
-	public DeserializerException(String message) {
+	public DecoderException(String message) {
 		super(message);
 	}
 	
-	public DeserializerException(String message, Throwable cause) {
+	public DecoderException(String message, Throwable cause) {
 		super(message, cause);
 	}
 	
-	public DeserializerException(Throwable cause) {
+	public DecoderException(Throwable cause) {
 		super(cause);
 	}
 	
-	public DeserializerException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+	public DecoderException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
 }

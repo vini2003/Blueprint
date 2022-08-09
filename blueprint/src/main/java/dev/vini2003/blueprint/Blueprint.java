@@ -28,11 +28,11 @@ import dev.vini2003.blueprint.annotation.Blueprintable;
 import dev.vini2003.blueprint.annotation.DefaultBlueprint;
 import dev.vini2003.blueprint.compound.*;
 import dev.vini2003.blueprint.consumer.Consumer2;
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import dev.vini2003.blueprint.exception.BlueprintException;
 import dev.vini2003.blueprint.function.*;
-import dev.vini2003.blueprint.generated.GeneratedBlueprint;
+import dev.vini2003.blueprint.generic.GenericCompoundBlueprint;
 import dev.vini2003.blueprint.generic.GenericCollectionBlueprint;
 import dev.vini2003.blueprint.generic.GenericMapBlueprint;
 import dev.vini2003.blueprint.generic.GenericOptionalBlueprint;
@@ -81,35 +81,19 @@ public abstract class Blueprint<T> {
 	}
 	
 	public Blueprint<T> key(String key) {
-		return new Blueprint<>(getter, setter, setterPredicate, key) {
-			@Override
-			public <F, I> T decode(Deserializer<F> deserializer, String key, F object, I instance) {
-				return Blueprint.this.decode(deserializer, this.key, object, instance);
-			}
-			
-			@Override
-			public <F, V> void encode(Serializer<F> serializer, String key, V value, F object) {
-				Blueprint.this.encode(serializer, this.key, value, object, (Function1<? super V, T>) this.getter);
-			}
-		};
+		return new WrappedBlueprint<>(getter, setter, setterPredicate, key, this);
 	}
 	
-	public <U> Blueprint<U> xmap(Function1<T, U> deserializeMapper, Function1<U, T> serializeMapper) {
-		return new Blueprint<>((Function1<?, U>) getter, setter, setterPredicate, key) {
-			@Override
-			public <F, I> U decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-				return deserializeMapper.apply(Blueprint.this.decode(deserializer, key, object, instance));
-			}
-			
-			@Override
-			public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-				Blueprint.this.encode(serializer, key, serializeMapper.apply(getter(value)), object);
-			}
-		};
+	public <U> Blueprint<U> xmap(Function1<T, U> decodeMapper, Function1<U, T> encodeMapper) {
+		return new MappedBlueprint<>(getter, setter, setterPredicate, key, this, decodeMapper, encodeMapper);
 	}
 	
 	public Blueprint<List<T>> list() {
 		return new CollectionBlueprint<>(this, ArrayList::new);
+	}
+	
+	public Blueprint<T[]> array() {
+			return new CollectionBlueprint<>(this, ArrayList::new).xmap(list -> (T[]) list.toArray(), array -> (ArrayList<T>) Arrays.asList(array));
 	}
 	
 	public Blueprint<Set<T>> setter() {
@@ -126,150 +110,152 @@ public abstract class Blueprint<T> {
 	
 	public static Blueprint<Boolean> BOOLEAN = new Blueprint<>() {
 		@Override
-		public <F, I> Boolean decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return setter(deserializer.readBoolean(key, object), instance);
+		public <F, I> Boolean decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+			return setter(decoder.readBoolean(key, object), instance);
 		}
 		
 		@Override
-		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeBoolean(key, getter(value), object);
+		public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+			encoder.writeBoolean(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Byte> BYTE = new Blueprint<>() {
 		@Override
-		public <F, I> Byte decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return setter(deserializer.readByte(key, object), instance);
+		public <F, I> Byte decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+			return setter(decoder.readByte(key, object), instance);
 		}
 		
 		@Override
-		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeByte(key, getter(value), object);
+		public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+			encoder.writeByte(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Short> SHORT = new Blueprint<>() {
 		@Override
-		public <F, I> Short decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return setter(deserializer.readShort(key, object), instance);
+		public <F, I> Short decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+			return setter(decoder.readShort(key, object), instance);
 		}
 		
 		@Override
-		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeShort(key, getter(value), object);
+		public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+			encoder.writeShort(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Character> CHARACTER = new Blueprint<>() {
 		@Override
-		public <F, I> Character decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return setter(deserializer.readChar(key, object), instance);
+		public <F, I> Character decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+			return setter(decoder.readChar(key, object), instance);
 		}
 		
 		@Override
-		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeChar(key, getter(value), object);
+		public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+			encoder.writeChar(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Integer> INTEGER = new Blueprint<>() {
 		@Override
-		public <F, I> Integer decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return setter(deserializer.readInt(key, object), instance);
+		public <F, I> Integer decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+			return setter(decoder.readInt(key, object), instance);
 		}
 		
 		@Override
-		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeInt(key, getter(value), object);
+		public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+			encoder.writeInt(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Long> LONG = new Blueprint<>() {
 		@Override
-		public <F, I> Long decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return setter(deserializer.readLong(key, object), instance);
+		public <F, I> Long decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+			return setter(decoder.readLong(key, object), instance);
 		}
 		
 		@Override
-		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeLong(key, getter(value), object);
+		public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+			encoder.writeLong(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Float> FLOAT = new Blueprint<>() {
 		@Override
-		public <F, I> Float decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return setter(deserializer.readFloat(key, object), instance);
+		public <F, I> Float decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+			return setter(decoder.readFloat(key, object), instance);
 		}
 		
 		@Override
-		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeFloat(key, getter(value), object);
+		public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+			encoder.writeFloat(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<Double> DOUBLE = new Blueprint<>() {
 		@Override
-		public <F, I> Double decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return setter(deserializer.readDouble(key, object), instance);
+		public <F, I> Double decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+			return setter(decoder.readDouble(key, object), instance);
 		}
 		
 		@Override
-		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeDouble(key, getter(value), object);
+		public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+			encoder.writeDouble(key, getter(value), object);
 		}
 	};
 	
 	public static Blueprint<String> STRING = new Blueprint<>() {
 		@Override
-		public <F, I> String decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-			return setter(deserializer.readString(key, object), instance);
+		public <F, I> String decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+			return setter(decoder.readString(key, object), instance);
 		}
 		
 		@Override
-		public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-			serializer.writeString(key, getter(value), object);
+		public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+			encoder.writeString(key, getter(value), object);
 		}
 	};
 	
-	public <F, V> F encode(Serializer<F> serializer, V value) {
-		var root = serializer.createRoot();
-		encode(serializer, null, value, root);
+	public <F, V> F encode(Encoder<F> encoder, V value) {
+		var root = encoder.createRoot();
+		encode(encoder, null, value, root);
 		return root;
 	}
 	
-	public <F, V> void encode(Serializer<F> serializer, V value, F object) {
-		encode(serializer, null, value, object);
+	public <F, V> void encode(Encoder<F> encoder, V value, F object) {
+		encode(encoder, null, value, object);
 	}
 	
-	public <F, V> void encode(Serializer<F> serializer, V value, F object, Function1<V, T> getter) {
-		encode(serializer, null, value, object, getter);
+	public <F, V> void encode(Encoder<F> encoder, V value, F object, Function1<V, T> getter) {
+		encode(encoder, null, value, object, getter);
 	}
 	
-	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object, Function1<V, T> getter) {
-		encode(serializer, key, getter == null ? value : getter.apply(value), object);
+	public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object, Function1<V, T> getter) {
+		encode(encoder, key, getter == null ? value : getter.apply(value), object);
 	}
 	
-	public abstract <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object);
+	public abstract <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object);
 	
-	public <F> T decode(Deserializer<F> deserializer, F object) {
-		return decode(deserializer, object, null);
+	public <F> T decode(Decoder<F> decoder, F object) {
+		return decode(decoder, object, null);
 	}
 	
-	public <F> T decode(Deserializer<F> deserializer, @Nullable String key, F object) {
-		return decode(deserializer, key, object, null);
+	public <F> T decode(Decoder<F> decoder, @Nullable String key, F object) {
+		return decode(decoder, key, object, null);
 	}
 	
-	public <F, I> T decode(Deserializer<F> deserializer, F object, I instance) {
-		return decode(deserializer, key, object, instance);
+	public <F, I> T decode(Decoder<F> decoder, F object, I instance) {
+		return decode(decoder, key, object, instance);
 	}
 	
-	public abstract <F, I> T decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance);
+	public abstract <F, I> T decode(Decoder<F> decoder, @Nullable String key, F object, I instance);
 	
+	@SuppressWarnings("unchecked")
 	protected <V> T getter(V value) {
 		return getter == null ? (T) value : ((Function1<V, T>) getter).apply(value);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public <T, I> T setter(T value, I instance) {
 		if (instance != null && setter != null) {
 			((Consumer2<I, T>) setter).accept((I) getter(instance), value);
@@ -284,7 +270,7 @@ public abstract class Blueprint<T> {
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + "Node[" + (key == null ? "None" : key) + "]";
+		return getClass().getSimpleName() + "Blueprint[" + (key == null ? "None" : key) + "]";
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -393,7 +379,7 @@ public abstract class Blueprint<T> {
 				fieldKeys.add(field.getName());
 			}
 			
-			return register(clazz, new GeneratedBlueprint(clazz, fieldBlueprints.toArray(Blueprint[]::new), fieldTypes.toArray(Class[]::new), fieldKeys.toArray(String[]::new)));
+			return register(clazz, new GenericCompoundBlueprint(clazz, fieldBlueprints.toArray(Blueprint[]::new), fieldTypes.toArray(Class[]::new), fieldKeys.toArray(String[]::new)));
 		} else {
 			var fields = clazz.getDeclaredFields();
 			
@@ -417,6 +403,10 @@ public abstract class Blueprint<T> {
 	
 	public static <T> Blueprint<List<T>> list(Blueprint<T> valueBlueprint) {
 		return new CollectionBlueprint<>(valueBlueprint, ArrayList::new);
+	}
+	
+	public static <T> Blueprint<T[]> array(Blueprint<T> valueBlueprint) {
+		return new CollectionBlueprint<>(valueBlueprint, ArrayList::new).xmap(list -> (T[]) list.toArray(), array -> (ArrayList<T>) Arrays.asList(array));
 	}
 	
 	public static <T> Blueprint<Set<T>> setter(Blueprint<T> valueBlueprint) {

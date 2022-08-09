@@ -24,8 +24,8 @@
 
 package dev.vini2003.blueprint;
 
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import dev.vini2003.blueprint.pair.Pair;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,28 +40,28 @@ public class PairBlueprint<T1, T2, N1 extends Blueprint<T1>, N2 extends Blueprin
 	}
 	
 	@Override
-	public <F, I> Pair<T1, T2> decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		var map = deserializer.read(key, object);
+	public <F, I> Pair<T1, T2> decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+		var map = decoder.read(key, object);
 		
-		return setter(new Pair<>(n1.decode(deserializer, key, map, instance), n2.decode(deserializer, key, map, instance)), instance);
+		return setter(new Pair<>(n1.decode(decoder, key, map, instance), n2.decode(decoder, key, map, instance)), instance);
 	}
 	
 	@Override
-	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		var map = serializer.createMap(object);
+	public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+		var map = encoder.createMap(object);
 		
 		var result = getter(value);
 		
 		if (result != null) {
-			n1.encode(serializer, "First", result.getFirst(), map);
-			n2.encode(serializer, "Second", result.getSecond(), map);
+			n1.encode(encoder, "First", result.getFirst(), map);
+			n2.encode(encoder, "Second", result.getSecond(), map);
 		}
 		
-		serializer.write(key, map, object);
+		encoder.write(key, map, object);
 	}
 	
 	@Override
 	public String toString() {
-		return "PairNode[" + (key == null ? "None" : key) + ", " + n1 + ", " + n2 + "]";
+		return "PairBlueprint[" + (key == null ? "None" : key) + ", " + n1 + ", " + n2 + "]";
 	}
 }

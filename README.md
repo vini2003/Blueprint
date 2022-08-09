@@ -240,7 +240,7 @@ By doing that, we obtain the following result:
 
 ```java
 Created Person Blueprint!
-GeneratedNode[None, [Node[name], Node[age], Node[job]]]
+GeneratedBlueprint[None, [Blueprint[name], Blueprint[age], Blueprint[job]]]
 Encoded Person to JSON!
 {"name":"John Doe","age":27,"job":{"name":"Programmer","wage":3000}}
 Decoded Person from JSON!

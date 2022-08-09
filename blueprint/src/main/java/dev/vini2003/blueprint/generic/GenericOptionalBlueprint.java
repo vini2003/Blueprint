@@ -25,8 +25,8 @@
 package dev.vini2003.blueprint.generic;
 
 import dev.vini2003.blueprint.Blueprint;
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -34,18 +34,18 @@ import java.util.Optional;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class GenericOptionalBlueprint extends Blueprint<Optional> {
 	@Override
-	public <F, I> Optional decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		var map = deserializer.read(key, object);
+	public <F, I> Optional decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+		var map = decoder.read(key, object);
 		
-		var exists = deserializer.readBoolean("Exists", map);
+		var exists = decoder.readBoolean("Exists", map);
 		
 		if (exists) {
 			try {
-				var valueClass = Class.forName(deserializer.readString("Class", map));
+				var valueClass = Class.forName(decoder.readString("Class", map));
 				
 				var valueBlueprint = Blueprint.of(valueClass);
 				
-				return setter(Optional.of(valueBlueprint.decode(deserializer, "Value", map)), instance);
+				return setter(Optional.of(valueBlueprint.decode(decoder, "Value", map)), instance);
 			} catch (Exception e) {
 				return setter(Optional.empty(), instance);
 			}
@@ -55,8 +55,8 @@ public class GenericOptionalBlueprint extends Blueprint<Optional> {
 	}
 	
 	@Override
-	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		var map = serializer.createMap(object);
+	public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+		var map = encoder.createMap(object);
 		
 		var valueOptional = getter(value);
 		
@@ -65,20 +65,20 @@ public class GenericOptionalBlueprint extends Blueprint<Optional> {
 			
 			var blueprint = Blueprint.of(entry);
 			
-			serializer.writeBoolean("Exists", true, map);
+			encoder.writeBoolean("Exists", true, map);
 			
-			serializer.writeString("Class", entry.getClass().getName(), map);
+			encoder.writeString("Class", entry.getClass().getName(), map);
 			
-			blueprint.encode(serializer, "Value", entry, map);
+			blueprint.encode(encoder, "Value", entry, map);
 		} else {
-			serializer.writeBoolean("Exists", false, map);
+			encoder.writeBoolean("Exists", false, map);
 		}
 		
-		serializer.write(key, map, object);
+		encoder.write(key, map, object);
 	}
 
 	@Override
 	public String toString() {
-		return "GenericOptionalNode[" + (key == null ? "None" : key) + "]";
+		return "GenericOptionalBlueprint[" + (key == null ? "None" : key) + "]";
 	}
 }

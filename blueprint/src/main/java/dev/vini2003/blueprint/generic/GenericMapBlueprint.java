@@ -25,8 +25,8 @@
 package dev.vini2003.blueprint.generic;
 
 import dev.vini2003.blueprint.Blueprint;
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import dev.vini2003.blueprint.supplier.Supplier1;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,22 +41,22 @@ public class GenericMapBlueprint extends Blueprint<Map> {
 	}
 	
 	@Override
-	public <F, I> Map decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		var map = deserializer.read(key, object);
+	public <F, I> Map decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+		var map = decoder.read(key, object);
 		
 		var newMap = this.map.get();
 		
-		var exists = deserializer.readBoolean("Exists", map);
+		var exists = decoder.readBoolean("Exists", map);
 		
 		if (exists) {
 			try {
-				var keyClass = Class.forName(deserializer.readString("KeyClass", map));
-				var valueClass = Class.forName(deserializer.readString("ValueClass", map));
+				var keyClass = Class.forName(decoder.readString("KeyClass", map));
+				var valueClass = Class.forName(decoder.readString("ValueClass", map));
 				
 				var keyBlueprint = Blueprint.of(keyClass);
 				var valueBlueprint = Blueprint.of(valueClass);
 				
-				deserializer.readMap(keyBlueprint, valueBlueprint, key, map, newMap::put);
+				decoder.readMap(keyBlueprint, valueBlueprint, key, map, newMap::put);
 				
 				return newMap;
 			} catch (Exception e) {
@@ -68,8 +68,8 @@ public class GenericMapBlueprint extends Blueprint<Map> {
 	}
 	
 	@Override
-	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		var map = serializer.createMap(object);
+	public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+		var map = encoder.createMap(object);
 		
 		var valueMap = getter(value);
 		
@@ -79,21 +79,21 @@ public class GenericMapBlueprint extends Blueprint<Map> {
 			var keyBlueprint = Blueprint.of(entry.getKey());
 			var valueBlueprint = Blueprint.of(entry.getValue());
 			
-			serializer.writeBoolean("Exists", true, map);
+			encoder.writeBoolean("Exists", true, map);
 			
-			serializer.writeString("KeyClass", entry.getKey().getClass().getName(), map);
-			serializer.writeString("ValueClass", entry.getValue().getClass().getName(), map);
+			encoder.writeString("KeyClass", entry.getKey().getClass().getName(), map);
+			encoder.writeString("ValueClass", entry.getValue().getClass().getName(), map);
 			
-			serializer.writeMap(keyBlueprint, valueBlueprint, key, valueMap, map);
+			encoder.writeMap(keyBlueprint, valueBlueprint, key, valueMap, map);
 		} else {
-			serializer.writeBoolean("Exists", false, map);
+			encoder.writeBoolean("Exists", false, map);
 		}
 		
-		serializer.write(key, map, object);
+		encoder.write(key, map, object);
 	}
 	
 	@Override
 	public String toString() {
-		return "GenericMapNode[" + (key == null ? "None" : key) + "]";
+		return "GenericMapBlueprint[" + (key == null ? "None" : key) + "]";
 	}
 }

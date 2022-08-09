@@ -27,17 +27,17 @@ package dev.vini2003.blueprint.fabric;
 import dev.vini2003.blueprint.Blueprint;
 import dev.vini2003.blueprint.consumer.Consumer1;
 import dev.vini2003.blueprint.consumer.Consumer2;
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
-import dev.vini2003.blueprint.exception.DeserializerException;
-import dev.vini2003.blueprint.exception.SerializerException;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
+import dev.vini2003.blueprint.exception.DecoderException;
+import dev.vini2003.blueprint.exception.EncoderException;
 import net.minecraft.nbt.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
 
-public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElement> {
+public class NbtParser implements Encoder<NbtElement>, Decoder<NbtElement> {
 	public static final NbtParser INSTANCE = new NbtParser();
 	
 	@Override
@@ -77,12 +77,12 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 		} else {
 			if (object instanceof NbtCompound nbtCompound) {
 				if (key == null) {
-					throw new DeserializerException("Cannot write non-keyed boolean to " + object.getClass().getName());
+					throw new DecoderException("Cannot write non-keyed boolean to " + object.getClass().getName());
 				}
 				
 				nbtCompound.putBoolean(key, value);
 			} else {
-				throw new SerializerException("Cannot write boolean to " + object.getClass().getName());
+				throw new EncoderException("Cannot write boolean to " + object.getClass().getName());
 			}
 		}
 	}
@@ -94,12 +94,12 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 		} else {
 			if (object instanceof NbtCompound nbtCompound) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed byte to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed byte to " + object.getClass().getName());
 				}
 				
 				nbtCompound.putByte(key, value);
 			} else {
-				throw new SerializerException("Cannot write byte to " + object.getClass().getName());
+				throw new EncoderException("Cannot write byte to " + object.getClass().getName());
 			}
 		}
 	}
@@ -111,12 +111,12 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 		} else {
 			if (object instanceof NbtCompound nbtCompound) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed short to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed short to " + object.getClass().getName());
 				}
 				
 				nbtCompound.putShort(key, value);
 			} else {
-				throw new SerializerException("Cannot write short to " + object.getClass().getName());
+				throw new EncoderException("Cannot write short to " + object.getClass().getName());
 			}
 		}
 	}
@@ -128,12 +128,12 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 		} else {
 			if (object instanceof NbtCompound nbtCompound) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed char to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed char to " + object.getClass().getName());
 				}
 				
 				nbtCompound.putInt(key, value);
 			} else {
-				throw new SerializerException("Cannot write char to " + object.getClass().getName());
+				throw new EncoderException("Cannot write char to " + object.getClass().getName());
 			}
 		}
 	}
@@ -145,12 +145,12 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 		} else {
 			if (object instanceof NbtCompound nbtCompound) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed int to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed int to " + object.getClass().getName());
 				}
 				
 				nbtCompound.putInt(key, value);
 			} else {
-				throw new SerializerException("Cannot write int to " + object.getClass().getName());
+				throw new EncoderException("Cannot write int to " + object.getClass().getName());
 			}
 		}
 	}
@@ -161,13 +161,13 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			nbtList.add(NbtLong.of(value));
 		} else {
 			if (key == null) {
-				throw new SerializerException("Cannot write non-keyed long to " + object.getClass().getName());
+				throw new EncoderException("Cannot write non-keyed long to " + object.getClass().getName());
 			}
 			
 			if (object instanceof NbtCompound nbtCompound) {
 				nbtCompound.putLong(key, value);
 			} else {
-				throw new SerializerException("Cannot write long to " + object.getClass().getName());
+				throw new EncoderException("Cannot write long to " + object.getClass().getName());
 			}
 		}
 	}
@@ -179,12 +179,12 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 		} else {
 			if (object instanceof NbtCompound nbtCompound) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed float to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed float to " + object.getClass().getName());
 				}
 				
 				nbtCompound.putFloat(key, value);
 			} else {
-				throw new SerializerException("Cannot write float to " + object.getClass().getName());
+				throw new EncoderException("Cannot write float to " + object.getClass().getName());
 			}
 		}
 	}
@@ -196,12 +196,12 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 		} else {
 			if (object instanceof NbtCompound nbtCompound) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed double to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed double to " + object.getClass().getName());
 				}
 				
 				nbtCompound.putDouble(key, value);
 			} else {
-				throw new SerializerException("Cannot write double to " + object.getClass().getName());
+				throw new EncoderException("Cannot write double to " + object.getClass().getName());
 			}
 		}
 	}
@@ -213,12 +213,12 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 		} else {
 			if (object instanceof NbtCompound nbtCompound) {
 				if (key == null) {
-					throw new SerializerException("Cannot write non-keyed String to " + object.getClass().getName());
+					throw new EncoderException("Cannot write non-keyed String to " + object.getClass().getName());
 				}
 				
 				nbtCompound.putString(key, value);
 			} else {
-				throw new SerializerException("Cannot write string to " + object.getClass().getName());
+				throw new EncoderException("Cannot write string to " + object.getClass().getName());
 			}
 		}
 	}
@@ -249,7 +249,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 				nbtCompound.put(key, mapNbtCompound);
 			}
 		} else {
-			throw new SerializerException("Cannot write map to " + object.getClass().getName());
+			throw new EncoderException("Cannot write map to " + object.getClass().getName());
 		}
 	}
 	
@@ -259,7 +259,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 		
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new SerializerException("Cannot write non-keyed List to " + object.getClass().getName());
+				throw new EncoderException("Cannot write non-keyed List to " + object.getClass().getName());
 			}
 			
 			for (var listValue : value) {
@@ -288,7 +288,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			
 			return nbtCompound.get(key);
 		} else {
-			throw new DeserializerException("Cannot read element from " + object.getClass().getName());
+			throw new DecoderException("Cannot read element from " + object.getClass().getName());
 		}
 	}
 	
@@ -296,7 +296,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public boolean readBoolean(@Nullable String key, NbtElement object) {
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed boolean from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed boolean from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getBoolean(key);
@@ -304,7 +304,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			if (object instanceof NbtByte nbtByte) {
 				return nbtByte.byteValue() != 0;
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -313,7 +313,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public byte readByte(@Nullable String key, NbtElement object) {
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed byte from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed byte from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getByte(key);
@@ -321,7 +321,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			if (object instanceof NbtByte nbtByte) {
 				return nbtByte.byteValue();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -330,7 +330,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public short readShort(@Nullable String key, NbtElement object) {
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed short from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed short from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getShort(key);
@@ -338,7 +338,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			if (object instanceof NbtShort nbtShort) {
 				return nbtShort.shortValue();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -347,7 +347,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public char readChar(@Nullable String key, NbtElement object) {
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed char from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed char from " + object.getClass().getName());
 			}
 			
 			return (char) nbtCompound.getInt(key);
@@ -355,7 +355,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			if (object instanceof NbtInt nbtInt) {
 				return (char) nbtInt.intValue();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -364,7 +364,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public int readInt(@Nullable String key, NbtElement object) {
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed int from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed int from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getInt(key);
@@ -372,7 +372,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			if (object instanceof NbtInt nbtInt) {
 				return nbtInt.intValue();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -381,7 +381,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public long readLong(@Nullable String key, NbtElement object) {
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed long from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed long from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getLong(key);
@@ -389,7 +389,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			if (object instanceof NbtLong nbtLong) {
 				return nbtLong.longValue();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -398,7 +398,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public float readFloat(@Nullable String key, NbtElement object) {
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed float from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed float from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getFloat(key);
@@ -406,7 +406,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			if (object instanceof NbtFloat nbtFloat) {
 				return nbtFloat.floatValue();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -415,7 +415,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public double readDouble(@Nullable String key, NbtElement object) {
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed double from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed double from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getDouble(key);
@@ -423,7 +423,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			if (object instanceof NbtDouble nbtDouble) {
 				return nbtDouble.doubleValue();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -432,7 +432,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public String readString(@Nullable String key, NbtElement object) {
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed String from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed String from " + object.getClass().getName());
 			}
 			
 			return nbtCompound.getString(key);
@@ -440,7 +440,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 			if (object instanceof NbtString nbtString) {
 				return nbtString.asString();
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}
@@ -459,7 +459,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 				mapper.accept(keyDeserialized, valueDeserialized);
 			}
 		} else {
-			throw new DeserializerException();
+			throw new DecoderException();
 		}
 	}
 	
@@ -467,7 +467,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 	public <V> void readCollection(Blueprint<V> valueBlueprint, @Nullable String key, NbtElement object, Consumer1<V> collector) {
 		if (object instanceof NbtCompound nbtCompound) {
 			if (key == null) {
-				throw new DeserializerException("Cannot read non-keyed Collection from " + object.getClass().getName());
+				throw new DecoderException("Cannot read non-keyed Collection from " + object.getClass().getName());
 			}
 			
 			var nbtList = (NbtList) nbtCompound.get(key);
@@ -485,7 +485,7 @@ public class NbtParser implements Serializer<NbtElement>, Deserializer<NbtElemen
 					collector.accept(valueDeserialized);
 				}
 			} else {
-				throw new DeserializerException();
+				throw new DecoderException();
 			}
 		}
 	}

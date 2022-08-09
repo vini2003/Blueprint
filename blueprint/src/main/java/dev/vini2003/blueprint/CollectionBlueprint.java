@@ -24,8 +24,8 @@
 
 package dev.vini2003.blueprint;
 
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import dev.vini2003.blueprint.supplier.Supplier1;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,21 +43,21 @@ public class CollectionBlueprint<T, N extends Blueprint<T>, C extends Collection
 	}
 	
 	@Override
-	public <F, I> C decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
+	public <F, I> C decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
 		var collection = this.collection.get();
 		
-		deserializer.readCollection(n, key, object, collection::add);
+		decoder.readCollection(n, key, object, collection::add);
 		
 		return setter(collection, instance);
 	}
 	
 	@Override
-	public <F, O> void encode(Serializer<F> serializer, @Nullable String key, O value, F object) {
-		serializer.writeCollection(n, key, getter(value), object);
+	public <F, O> void encode(Encoder<F> encoder, @Nullable String key, O value, F object) {
+		encoder.writeCollection(n, key, getter(value), object);
 	}
 	
 	@Override
 	public String toString() {
-		return "ListNode[" + (key == null ? "None" : key) + ", " + n + "]";
+		return "ListBlueprint[" + (key == null ? "None" : key) + ", " + n + "]";
 	}
 }

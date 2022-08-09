@@ -1,8 +1,8 @@
 package dev.vini2003.blueprint;
 
 import dev.vini2003.blueprint.consumer.Consumer2;
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import dev.vini2003.blueprint.function.Function1;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,12 +19,12 @@ public class WrappedBlueprint<T> extends Blueprint<T> {
 	
 	@Override
 	@SuppressWarnings("unchecked")
-	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		wrapped.encode(serializer, this.key != null ? this.key : key, value, object, (Function1<? super V, T>) this.getter);
+	public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+		wrapped.encode(encoder, this.key != null ? this.key : key, value, object, (Function1<? super V, T>) this.getter);
 	}
 	
 	@Override
-	public <F, I> T decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		return wrapped.decode(deserializer, this.key != null ? this.key : key, object, instance);
+	public <F, I> T decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+		return wrapped.decode(decoder, this.key != null ? this.key : key, object, instance);
 	}
 }

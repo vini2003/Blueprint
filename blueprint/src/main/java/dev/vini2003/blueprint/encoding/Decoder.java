@@ -22,42 +22,35 @@
  * SOFTWARE.
  */
 
-package dev.vini2003.blueprint.deserializer;
+package dev.vini2003.blueprint.encoding;
 
 import dev.vini2003.blueprint.Blueprint;
+import dev.vini2003.blueprint.consumer.Consumer1;
+import dev.vini2003.blueprint.consumer.Consumer2;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
-
-public interface Serializer<F> {
-	F createRoot();
+public interface Decoder<F> {
+	F read(@Nullable String key, F object);
 	
-	F createCollection(F object);
+	boolean readBoolean(@Nullable String key, F object);
 	
-	F createMap(F object);
+	byte readByte(@Nullable String key, F object);
 	
-	void write(@Nullable String key, F value, F object);
+	short readShort(@Nullable String key, F object);
 	
-	void writeBoolean(@Nullable String key, boolean value, F object);
+	char readChar(@Nullable String key, F object);
 	
-	void writeByte(@Nullable String key, byte value, F object);
+	int readInt(@Nullable String key, F object);
 	
-	void writeShort(@Nullable String key, short value, F object);
+	long readLong(@Nullable String key, F object);
 	
-	void writeChar(@Nullable String key, char value, F object);
+	float readFloat(@Nullable String key, F object);
 	
-	void writeInt(@Nullable String key, int value, F object);
+	double readDouble(@Nullable String key, F object);
 	
-	void writeLong(@Nullable String key, long value, F object);
+	String readString(@Nullable String key, F object);
 	
-	void writeFloat(@Nullable String key, float value, F object);
+	<K, V> void readMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, F object, Consumer2<K, V> mapper);
 	
-	void writeDouble(@Nullable String key, double value, F object);
-	
-	void writeString(@Nullable String key, String value, F object);
-	
-	<K, V, M extends Map<K, V>> void writeMap(Blueprint<K> keyBlueprint, Blueprint<V> valueBlueprint, @Nullable String key, M value, F object);
-	
-	<V, C extends Collection<V>> void writeCollection(Blueprint<V> valueBlueprint, @Nullable String key, C value, F object);
+	<V> void readCollection(Blueprint<V> valueBlueprint, @Nullable String key, F object, Consumer1<V> collector);
 }

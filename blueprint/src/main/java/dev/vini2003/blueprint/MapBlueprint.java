@@ -24,8 +24,8 @@
 
 package dev.vini2003.blueprint;
 
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import dev.vini2003.blueprint.supplier.Supplier1;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,21 +45,21 @@ public class MapBlueprint<T1, T2, N1 extends Blueprint<T1>, N2 extends Blueprint
 	}
 	
 	@Override
-	public <F, I> M decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
+	public <F, I> M decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
 		var map = this.map.get();
 		
-		deserializer.readMap(n1, n2, key, object, map::put);
+		decoder.readMap(n1, n2, key, object, map::put);
 		
 		return setter(map, instance);
 	}
 	
 	@Override
-	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		serializer.writeMap(n1, n2, key, getter(value), object);
+	public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+		encoder.writeMap(n1, n2, key, getter(value), object);
 	}
 	
 	@Override
 	public String toString() {
-		return "MapNode[" + (key == null ? "None" : key) + ", " + n1 + ", " + n2 + "]";
+		return "MapBlueprint[" + (key == null ? "None" : key) + ", " + n1 + ", " + n2 + "]";
 	}
 }

@@ -22,16 +22,16 @@
  * SOFTWARE.
  */
 
-package dev.vini2003.blueprint.generated;
+package dev.vini2003.blueprint.generic;
 
 import dev.vini2003.blueprint.Blueprint;
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
-public class GeneratedBlueprint<T> extends Blueprint<T> {
+public class GenericCompoundBlueprint<T> extends Blueprint<T> {
 	private final Class<?> clazz;
 	
 	private final Blueprint<?>[] fieldBlueprints;
@@ -40,7 +40,7 @@ public class GeneratedBlueprint<T> extends Blueprint<T> {
 	
 	private final int fields;
 	
-	public GeneratedBlueprint(Class<?> clazz, Blueprint<?>[] fieldBlueprints, Class<?>[] fieldClazzes, String[] fieldKeys) {
+	public GenericCompoundBlueprint(Class<?> clazz, Blueprint<?>[] fieldBlueprints, Class<?>[] fieldClazzes, String[] fieldKeys) {
 		this.clazz = clazz;
 		
 		this.fieldBlueprints = fieldBlueprints;
@@ -51,15 +51,15 @@ public class GeneratedBlueprint<T> extends Blueprint<T> {
 	}
 	
 	@Override
-	public <F, I> T decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
-		var map = deserializer.read(key, object);
+	public <F, I> T decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
+		var map = decoder.read(key, object);
 		
 		var results = new Object[fields];
 		
 		for (var i = 0; i < fields; ++i) {
 			var fieldBlueprint = fieldBlueprints[i];
 			
-			results[i] = fieldBlueprint.decode(deserializer, fieldKeys[i], map, instance);
+			results[i] = fieldBlueprint.decode(decoder, fieldKeys[i], map, instance);
 		}
 		
 		try {
@@ -70,16 +70,16 @@ public class GeneratedBlueprint<T> extends Blueprint<T> {
 	}
 	
 	@Override
-	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		var map = serializer.createMap(object);
+	public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+		var map = encoder.createMap(object);
 		
 		for (var i = 0; i < fields; ++i) {
 			var fieldBlueprint = fieldBlueprints[i];
 
-			fieldBlueprint.encode(serializer, fieldKeys[i], value, map);
+			fieldBlueprint.encode(encoder, fieldKeys[i], value, map);
 		}
 		
-		serializer.write(key, map, object);
+		encoder.write(key, map, object);
 	}
 	
 	@Override
@@ -90,6 +90,6 @@ public class GeneratedBlueprint<T> extends Blueprint<T> {
 			nodeStrings[i] = fieldBlueprints[i].toString().replace("None", fieldKeys[i]);
 		}
 		
-		return "GeneratedNode[" + (key == null ? "None" : key) + ", " + Arrays.toString(nodeStrings) + "]";
+		return "GenericCompoundBlueprint[" + (key == null ? "None" : key) + ", " + Arrays.toString(nodeStrings) + "]";
 	}
 }

@@ -25,8 +25,8 @@
 package dev.vini2003.blueprint.generic;
 
 import dev.vini2003.blueprint.Blueprint;
-import dev.vini2003.blueprint.deserializer.Deserializer;
-import dev.vini2003.blueprint.deserializer.Serializer;
+import dev.vini2003.blueprint.encoding.Decoder;
+import dev.vini2003.blueprint.encoding.Encoder;
 import dev.vini2003.blueprint.supplier.Supplier1;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,18 +41,18 @@ public class GenericCollectionBlueprint extends Blueprint<Collection> {
 	}
 	
 	@Override
-	public <F, I> Collection decode(Deserializer<F> deserializer, @Nullable String key, F object, I instance) {
+	public <F, I> Collection decode(Decoder<F> decoder, @Nullable String key, F object, I instance) {
 		var newCollection = this.collection.get();
 		
-		var exists = deserializer.readBoolean(metaDataKey(key) + "$Flag", object);
+		var exists = decoder.readBoolean(metaDataKey(key) + "$Flag", object);
 		
 		if (exists) {
 			try {
-				var valueClass = Class.forName(deserializer.readString(metaDataKey(key) + "$Value", object));
+				var valueClass = Class.forName(decoder.readString(metaDataKey(key) + "$Value", object));
 				
 				var valueBlueprint = Blueprint.of(valueClass);
 				
-				deserializer.readCollection(valueBlueprint, key, object, newCollection::add);
+				decoder.readCollection(valueBlueprint, key, object, newCollection::add);
 				
 				return setter(newCollection, instance);
 			} catch (Exception e) {
@@ -64,8 +64,8 @@ public class GenericCollectionBlueprint extends Blueprint<Collection> {
 	}
 	
 	@Override
-	public <F, V> void encode(Serializer<F> serializer, @Nullable String key, V value, F object) {
-		var collection = serializer.createCollection(object);
+	public <F, V> void encode(Encoder<F> encoder, @Nullable String key, V value, F object) {
+		var collection = encoder.createCollection(object);
 		
 		var valueCollection = getter(value);
 		
@@ -74,16 +74,16 @@ public class GenericCollectionBlueprint extends Blueprint<Collection> {
 			
 			var valueBlueprint = Blueprint.of(entry);
 			
-			serializer.writeBoolean("Exists", true, collection);
+			encoder.writeBoolean("Exists", true, collection);
 			
-			serializer.writeString("Value", entry.getClass().getName(), collection);
+			encoder.writeString("Value", entry.getClass().getName(), collection);
 			
-			serializer.writeCollection(valueBlueprint, key, valueCollection, collection);
+			encoder.writeCollection(valueBlueprint, key, valueCollection, collection);
 		} else {
-			serializer.writeBoolean("Exists", false, collection);
+			encoder.writeBoolean("Exists", false, collection);
 		}
 		
-		serializer.write(key, collection, object);
+		encoder.write(key, collection, object);
 	}
 	
 	private String metaDataKey(String key) {
@@ -92,6 +92,6 @@ public class GenericCollectionBlueprint extends Blueprint<Collection> {
 	
 	@Override
 	public String toString() {
-		return "GenericCollectionNode[" + (key == null ? "None" : key) + "]";
+		return "GenericCollectionBlueprint[" + (key == null ? "None" : key) + "]";
 	}
 }
